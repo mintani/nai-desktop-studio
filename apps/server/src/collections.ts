@@ -1,6 +1,6 @@
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Elysia } from "elysia";
+import { Hono } from "hono";
 import { configDir } from "./paths";
 
 const COLLECTION_NAMES = [
@@ -162,36 +162,38 @@ export async function patchCollectionRecord(
   await upsert(name, { ...found, ...patch, id });
 }
 
-export const collectionsRouter = new Elysia({ prefix: "/collections" })
-  .get("/:name", async ({ params, set }) => {
-    if (!isCollectionName(params.name)) {
-      set.status = 404;
-      return { error: "Unknown collection" };
+export const collectionsRouter = new Hono()
+  .get("/:name", async (c) => {
+    const name = c.req.param("name");
+    if (!isCollectionName(name)) {
+      return c.json({ error: "Unknown collection" }, 404);
     }
-    const items = [...(await load(params.name))].sort(byUpdatedAtDesc);
-    return { items };
+    const items = [...(await load(name))].sort(byUpdatedAtDesc);
+    return c.json({ items });
   })
-  .put("/:name/:id", async ({ params, body, set }) => {
-    if (!isCollectionName(params.name)) {
-      set.status = 404;
-      return { error: "Unknown collection" };
+  .put("/:name/:id", async (c) => {
+    const name = c.req.param("name");
+    if (!isCollectionName(name)) {
+      return c.json({ error: "Unknown collection" }, 404);
     }
+    // Read by hand rather than through a schema: a record's shape belongs to
+    // the web app, and the server only insists that it is an object with the
+    // id from the path.
+    const body: unknown = await c.req.json().catch(() => null);
     if (!isPlainObject(body)) {
-      set.status = 400;
-      return { error: "Record must be an object" };
+      return c.json({ error: "Record must be an object" }, 400);
     }
     // The path id wins over any id in the body.
-    const record: CollectionRecord = { ...body, id: params.id };
-    return upsert(params.name, record);
+    const record: CollectionRecord = { ...body, id: c.req.param("id") };
+    return c.json(await upsert(name, record));
   })
-  .delete("/:name/:id", async ({ params, set }) => {
-    if (!isCollectionName(params.name)) {
-      set.status = 404;
-      return { error: "Unknown collection" };
+  .delete("/:name/:id", async (c) => {
+    const name = c.req.param("name");
+    if (!isCollectionName(name)) {
+      return c.json({ error: "Unknown collection" }, 404);
     }
-    if (!(await remove(params.name, params.id))) {
-      set.status = 404;
-      return { error: "Record not found" };
+    if (!(await remove(name, c.req.param("id")))) {
+      return c.json({ error: "Record not found" }, 404);
     }
-    return { ok: true };
+    return c.json({ ok: true });
   });

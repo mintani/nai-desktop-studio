@@ -1,4 +1,5 @@
-import { Elysia } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
 import { env } from "@nai-desktop-studio/env/server";
 import {
@@ -11,6 +12,7 @@ import {
   generateImageStreamSchema,
 } from "@nai-desktop-studio/novelai";
 import type { GenerationMeta, StreamFrame } from "@nai-desktop-studio/novelai";
+import { onInvalid } from "./http";
 import { getApiKey } from "./settings";
 import { saveImage, toImageResponse } from "./library";
 
@@ -139,60 +141,52 @@ function createStreamBody(
   });
 }
 
-export const novelaiRouter = new Elysia({ prefix: "/novelai" })
-  .get("/subscription", async ({ set }) => {
+export const novelaiRouter = new Hono()
+  .get("/subscription", async (c) => {
     const client = await getClient();
-    if (!client) {
-      set.status = 428;
-      return { error: NO_KEY_MESSAGE };
-    }
+    if (!client) return c.json({ error: NO_KEY_MESSAGE }, 428);
     try {
-      return await client.subscription();
+      return c.json(await client.subscription());
     } catch (error) {
       return errorResponse(error, 502);
     }
   })
   .post(
     "/anlas-estimate",
-    ({ body, set }) => {
+    zValidator("json", estimateAnlasSchema, onInvalid),
+    (c) => {
       try {
-        return estimateAnlas(body);
+        return c.json(estimateAnlas(c.req.valid("json")));
       } catch (error) {
-        set.status = 400;
-        return {
-          error: error instanceof Error ? error.message : "Unknown error",
-        };
+        return c.json(
+          { error: error instanceof Error ? error.message : "Unknown error" },
+          400
+        );
       }
-    },
-    { body: estimateAnlasSchema }
+    }
   )
   .post(
     "/encode-vibe",
-    async ({ body, set }) => {
+    zValidator("json", encodeVibeSchema, onInvalid),
+    async (c) => {
       const client = await getClient();
-      if (!client) {
-        set.status = 428;
-        return { error: NO_KEY_MESSAGE };
-      }
+      if (!client) return c.json({ error: NO_KEY_MESSAGE }, 428);
       try {
-        const data = await client.encodeVibe(body);
-        return { data };
+        const data = await client.encodeVibe(c.req.valid("json"));
+        return c.json({ data });
       } catch (error) {
         return errorResponse(error, 500);
       }
-    },
-    { body: encodeVibeSchema }
+    }
   )
   .post(
     "/generate",
-    async ({ body, set }) => {
+    zValidator("json", generateBodySchema, onInvalid),
+    async (c) => {
       const client = await getClient();
-      if (!client) {
-        set.status = 428;
-        return { error: NO_KEY_MESSAGE };
-      }
+      if (!client) return c.json({ error: NO_KEY_MESSAGE }, 428);
       try {
-        const { batch_id, index, ...rest } = body;
+        const { batch_id, index, ...rest } = c.req.valid("json");
         const batchId = batch_id ?? crypto.randomUUID();
         const startIndex = index ?? 0;
         // Pass n_samples through: a batch (n_samples > 1) returns all samples,
@@ -210,23 +204,20 @@ export const novelaiRouter = new Elysia({ prefix: "/novelai" })
             })
           )
         );
-        return { images: saved.map(toImageResponse) };
+        return c.json({ images: saved.map(toImageResponse) });
       } catch (error) {
         return errorResponse(error, 400);
       }
-    },
-    { body: generateBodySchema }
+    }
   )
   .post(
     "/generate-stream",
-    async ({ body, set }) => {
+    zValidator("json", generateStreamBodySchema, onInvalid),
+    async (c) => {
       const client = await getClient();
-      if (!client) {
-        set.status = 428;
-        return { error: NO_KEY_MESSAGE };
-      }
+      if (!client) return c.json({ error: NO_KEY_MESSAGE }, 428);
       try {
-        const { batch_id, index, ...rest } = body;
+        const { batch_id, index, ...rest } = c.req.valid("json");
         const batchId = batch_id ?? crypto.randomUUID();
         const slot = index ?? 0;
         const { meta, frames } = await client.generateStream({
@@ -243,6 +234,5 @@ export const novelaiRouter = new Elysia({ prefix: "/novelai" })
       } catch (error) {
         return errorResponse(error, 400);
       }
-    },
-    { body: generateStreamBodySchema }
+    }
   );

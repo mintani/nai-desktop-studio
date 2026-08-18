@@ -1,10 +1,12 @@
 import { chmod, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Elysia } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
 import { env } from "@nai-desktop-studio/env/server";
 import { createNovelAIClient, IMAGE_MODELS } from "@nai-desktop-studio/novelai";
 import type { ImageModel } from "@nai-desktop-studio/novelai";
+import { onInvalid } from "./http";
 import { configDir, defaultOutputDir } from "./paths";
 
 const DEFAULT_MODEL: ImageModel = "nai-diffusion-4-5-full";
@@ -190,28 +192,22 @@ const verifyBodySchema = z.object({
   apiKey: z.string().min(1).optional(),
 });
 
-export const settingsRouter = new Elysia({ prefix: "/settings" })
-  .get("/", () => publicSettings())
-  .put(
-    "/",
-    async ({ body }) => {
-      await updateSettings(body);
-      return publicSettings();
-    },
-    { body: putBodySchema }
-  )
-  .delete("/api-key", async () => {
+export const settingsRouter = new Hono()
+  .get("/", async (c) => c.json(await publicSettings()))
+  .put("/", zValidator("json", putBodySchema, onInvalid), async (c) => {
+    await updateSettings(c.req.valid("json"));
+    return c.json(await publicSettings());
+  })
+  .delete("/api-key", async (c) => {
     await deleteApiKey();
-    return publicSettings();
+    return c.json(await publicSettings());
   })
   .post(
     "/verify",
-    async ({ body, set }) => {
-      const apiKey = body.apiKey ?? (await getApiKey());
-      if (!apiKey) {
-        set.status = 428;
-        return { error: NO_KEY_MESSAGE };
-      }
+    zValidator("json", verifyBodySchema, onInvalid),
+    async (c) => {
+      const apiKey = c.req.valid("json").apiKey ?? (await getApiKey());
+      if (!apiKey) return c.json({ error: NO_KEY_MESSAGE }, 428);
       try {
         const client = createNovelAIClient({
           apiKey,
@@ -219,10 +215,9 @@ export const settingsRouter = new Elysia({ prefix: "/settings" })
           apiBase: env.NOVELAI_API_BASE,
         });
         const subscription = await client.subscription();
-        return { ok: true, subscription };
+        return c.json({ ok: true, subscription });
       } catch (error) {
-        return { ok: false, error: await toErrorMessage(error) };
+        return c.json({ ok: false, error: await toErrorMessage(error) });
       }
-    },
-    { body: verifyBodySchema }
+    }
   );

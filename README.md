@@ -32,7 +32,7 @@ NovelAI の画像生成をローカルで完結させるデスクトップ向け
 nai-desktop-studio/
 ├── apps/
 │   ├── web/         # 画面 (Vite + TanStack Start / SPA)
-│   ├── server/      # ローカル API (Elysia / Bun)
+│   ├── server/      # ローカル API (Hono / Bun)
 │   └── desktop/     # Tauri のシェル。web と server を 1 つのアプリにまとめる
 ├── packages/
 │   ├── novelai/     # NovelAI API のスキーマ・ペイロード組み立て・クライアント

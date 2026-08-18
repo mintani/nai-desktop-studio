@@ -10,11 +10,11 @@
     "start": "bun run dist/index.mjs"
   },
   "dependencies": {
-    "@elysiajs/cors": "^1.4.1",
+    "@hono/zod-validator": "^0.9.0",
     "@nai-desktop-studio/env": "workspace:*",
     "@nai-desktop-studio/novelai": "workspace:*",
     "dotenv": "catalog:",
-    "elysia": "catalog:",
+    "hono": "^4.13.3",
     "sharp": "^0.35.3",
     "zod": "catalog:"
   },

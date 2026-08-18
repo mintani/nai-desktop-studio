@@ -1,7 +1,9 @@
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, extname, join } from "node:path";
-import { Elysia } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
+import { onInvalid } from "./http";
 import { getOutputDir } from "./settings";
 import { deleteThumbnail, ensureThumbnail } from "./thumbnails";
 
@@ -263,62 +265,48 @@ const listQuerySchema = z.object({
 // it. So the browser may keep both the file and its thumbnail indefinitely.
 const IMMUTABLE = "public, max-age=31536000, immutable";
 
-export const imagesRouter = new Elysia({ prefix: "/images" })
-  .get(
-    "/",
-    async ({ query }) => {
-      const images = await listImages({ limit: query.limit });
-      return { images };
-    },
-    { query: listQuerySchema }
-  )
-  .get("/:id/file", async ({ params, set }) => {
-    const image = await getImage(params.id);
-    if (!image) {
-      set.status = 404;
-      return { error: "Image not found" };
-    }
+export const imagesRouter = new Hono()
+  .get("/", zValidator("query", listQuerySchema, onInvalid), async (c) => {
+    const images = await listImages({ limit: c.req.valid("query").limit });
+    return c.json({ images });
+  })
+  .get("/:id/file", async (c) => {
+    const image = await getImage(c.req.param("id"));
+    if (!image) return c.json({ error: "Image not found" }, 404);
     const file = Bun.file(image.filePath);
     if (!(await file.exists())) {
-      set.status = 404;
-      return { error: "Image file not found" };
+      return c.json({ error: "Image file not found" }, 404);
     }
-    set.headers["Content-Disposition"] =
-      `inline; filename="${image.id}${extname(image.filePath)}"`;
-    set.headers["Cache-Control"] = IMMUTABLE;
-    return file;
+    return new Response(file, {
+      headers: {
+        "Content-Disposition": `inline; filename="${image.id}${extname(image.filePath)}"`,
+        "Cache-Control": IMMUTABLE,
+      },
+    });
   })
-  .get("/:id/thumb", async ({ params, set }) => {
-    const image = await getImage(params.id);
-    if (!image) {
-      set.status = 404;
-      return { error: "Image not found" };
-    }
+  .get("/:id/thumb", async (c) => {
+    const image = await getImage(c.req.param("id"));
+    if (!image) return c.json({ error: "Image not found" }, 404);
     const thumb = await ensureThumbnail(image.id, image.filePath);
     if (!thumb) {
       // Unreadable source, or sharp is unavailable in this build. Serving the
       // full image is slower but still shows the picture.
       const file = Bun.file(image.filePath);
       if (!(await file.exists())) {
-        set.status = 404;
-        return { error: "Image file not found" };
+        return c.json({ error: "Image file not found" }, 404);
       }
-      set.headers["Cache-Control"] = IMMUTABLE;
-      return file;
+      return new Response(file, { headers: { "Cache-Control": IMMUTABLE } });
     }
-    set.headers["Content-Type"] = "image/webp";
-    set.headers["Cache-Control"] = IMMUTABLE;
-    return Bun.file(thumb);
+    return new Response(Bun.file(thumb), {
+      headers: { "Content-Type": "image/webp", "Cache-Control": IMMUTABLE },
+    });
   })
-  .delete("/:id", async ({ params, set }) => {
-    const deleted = await deleteImage(params.id);
-    if (!deleted) {
-      set.status = 404;
-      return { error: "Image not found" };
-    }
-    return { ok: true };
+  .delete("/:id", async (c) => {
+    const deleted = await deleteImage(c.req.param("id"));
+    if (!deleted) return c.json({ error: "Image not found" }, 404);
+    return c.json({ ok: true });
   })
-  .delete("/", async () => {
+  .delete("/", async (c) => {
     const deleted = await clearImages();
-    return { ok: true, deleted };
+    return c.json({ ok: true, deleted });
   });

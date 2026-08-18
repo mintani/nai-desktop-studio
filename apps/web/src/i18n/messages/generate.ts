@@ -128,6 +128,29 @@ const en = {
   "workspace.themeDark": "Dark",
   "workspace.themeSystem": "System",
 
+  "referenceLibrary.title": "Reference library",
+  "referenceLibrary.description":
+    "Saved reference images. A vibe is encoded once and free to reuse after that.",
+  "referenceLibrary.search": "Search by name or group",
+  "referenceLibrary.add": "Add image",
+  "referenceLibrary.newName": "Untitled",
+  "referenceLibrary.empty":
+    "Nothing saved yet. Add an image to reuse it without paying to encode it again.",
+  "referenceLibrary.noMatch": "Nothing matches",
+  "referenceLibrary.name": "Name",
+  "referenceLibrary.encoded": "encoded — free",
+  "referenceLibrary.notEncoded": "2 Anlas on first use",
+  "referenceLibrary.preciseCost": "5 Anlas per image",
+  "referenceLibrary.infoExtractedHint":
+    "Changing this throws the stored encode away, so the next use pays 2 Anlas again.",
+  "referenceLibrary.pickToEdit": "Pick an image to change its settings.",
+  "referenceLibrary.saveError": "Could not save the reference",
+  "referenceLibrary.open": "From the library",
+  "referenceLibrary.picked": "{count} from the library",
+  "referenceLibrary.resolveError":
+    "Could not read the library, so this run goes without it.",
+  "referenceLibrary.dropped": "Left out {count} library reference(s).",
+
   "reference.i2i.title": "Source image (i2i)",
   "reference.i2i.pick": "Choose a source image",
   "reference.i2i.strength": "Change amount",
@@ -299,6 +322,29 @@ const ja: Record<keyof typeof en, string> = {
   "workspace.themeLight": "ライト",
   "workspace.themeDark": "ダーク",
   "workspace.themeSystem": "システム",
+
+  "referenceLibrary.title": "参照ライブラリ",
+  "referenceLibrary.description":
+    "保存した参照画像。バイブは 1 度エンコードすれば、以後は無料で使い回せます。",
+  "referenceLibrary.search": "名前・グループで検索",
+  "referenceLibrary.add": "画像を追加",
+  "referenceLibrary.newName": "無題",
+  "referenceLibrary.empty":
+    "まだありません。画像を追加すると、次からはエンコード代を払わずに使えます。",
+  "referenceLibrary.noMatch": "一致するものがありません",
+  "referenceLibrary.name": "名前",
+  "referenceLibrary.encoded": "エンコード済み — 無料",
+  "referenceLibrary.notEncoded": "初回のみ 2 Anlas",
+  "referenceLibrary.preciseCost": "1 枚 5 Anlas",
+  "referenceLibrary.infoExtractedHint":
+    "変更すると保存済みのエンコードを捨てるので、次の利用でまた 2 Anlas かかります。",
+  "referenceLibrary.pickToEdit": "画像を選ぶと設定を変えられます。",
+  "referenceLibrary.saveError": "参照を保存できませんでした",
+  "referenceLibrary.open": "ライブラリから選ぶ",
+  "referenceLibrary.picked": "ライブラリから {count} 件",
+  "referenceLibrary.resolveError":
+    "ライブラリを読めなかったので、ライブラリ無しで生成します。",
+  "referenceLibrary.dropped": "ライブラリ参照 {count} 件を除きました。",
 
   "reference.i2i.title": "元画像 (i2i)",
   "reference.i2i.pick": "元画像を選ぶ",

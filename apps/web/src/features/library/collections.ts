@@ -7,7 +7,12 @@ import { bytesToBase64 } from "@/lib/base64";
  * is owned here, and each feature normalizes what it reads. That keeps one
  * schema instead of two that can drift.
  */
-export const COLLECTIONS = ["characters", "situations", "styles"] as const;
+export const COLLECTIONS = [
+  "characters",
+  "situations",
+  "styles",
+  "references",
+] as const;
 export type CollectionName = (typeof COLLECTIONS)[number];
 
 export function listCollection(name: CollectionName) {

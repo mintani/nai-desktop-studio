@@ -51,6 +51,11 @@ export type FormState = {
   referenceMode: ReferenceMode;
   vibes: AdhocVibe[];
   references: AdhocReference[];
+  /**
+   * Saved reference entries picked for this run. Held as ids: the image and the
+   * encode stay on the server, so a run carries only the choice.
+   */
+  libraryReferenceIds: string[];
 };
 
 /**

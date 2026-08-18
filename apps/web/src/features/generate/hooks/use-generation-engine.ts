@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -7,12 +8,15 @@ import { useT } from "@/i18n/provider";
 
 import { ApiError } from "@/lib/api-client";
 
+import { resolveReferences } from "@/features/reference-library/lib/api";
+import { referencesQueryKey } from "@/features/reference-library/hooks/queries";
 import { useSettings } from "@/features/settings/hooks/queries";
 
 import { aspectOfSize } from "../constants";
 import { encodeVibe, generateImages, generateImageStream } from "../lib/api";
 import { buildGenerateRequest, type EncodedVibe } from "../lib/build-request";
 import type { GenerationJob } from "../lib/compose";
+import type { FormState } from "../types/generate";
 import type { GeneratedImage, GenerationSlot } from "../types/image";
 
 type EngineState = {
@@ -41,6 +45,7 @@ type Options = {
  */
 export function useGenerationEngine({ onImageSaved }: Options) {
   const t = useT();
+  const queryClient = useQueryClient();
   const { data: settings } = useSettings();
   const mode = settings?.generationMode ?? "queue";
   const [state, setState] = useState<EngineState>(IDLE);
@@ -129,6 +134,63 @@ export function useGenerationEngine({ onImageSaved }: Options) {
           );
         }
 
+        // Library entries are resolved by the server, which already holds the
+        // encode for anything used before. Only a first-time vibe spends the
+        // 2 Anlas here; everything else is a file read.
+        let libraryForm = first;
+        if (first.libraryReferenceIds.length > 0) {
+          try {
+            const resolved = await resolveReferences(first.libraryReferenceIds);
+            const dropped = first.libraryReferenceIds.length - resolved.length;
+            if (dropped > 0) {
+              toast.warning(t("referenceLibrary.dropped", { count: dropped }));
+            }
+            if (first.referenceMode === "vibe") {
+              encodedVibes = [
+                ...encodedVibes,
+                ...resolved
+                  .filter((entry) => entry.kind === "vibe")
+                  .map((entry) => ({
+                    encoded: entry.encoded,
+                    strength: entry.strength,
+                  })),
+              ];
+            } else {
+              libraryForm = {
+                ...first,
+                references: [
+                  ...first.references,
+                  ...resolved
+                    .filter((entry) => entry.kind === "reference")
+                    .map((entry) => ({
+                      id: entry.id,
+                      previewUrl: "",
+                      imageBase64: entry.image,
+                      referenceType:
+                        entry.referenceType as (typeof first.references)[number]["referenceType"],
+                      strength: entry.strength,
+                      fidelity: entry.fidelity,
+                    })),
+                ],
+              };
+            }
+            // A first-time encode flips the badge in the picker.
+            void queryClient.invalidateQueries({
+              queryKey: referencesQueryKey,
+            });
+          } catch {
+            toast.error(t("referenceLibrary.resolveError"));
+          }
+        }
+
+        // The resolved precise references belong to the run, not to one scene,
+        // so each job's form picks them up as it goes out.
+        const libraryReferences = libraryForm.references;
+        const withLibrary = (form: FormState): FormState =>
+          libraryReferences === first.references
+            ? form
+            : { ...form, references: libraryReferences };
+
         let index = 0;
         for (const job of jobs) {
           if (controller.signal.aborted) break;
@@ -137,7 +199,7 @@ export function useGenerationEngine({ onImageSaved }: Options) {
           if (mode === "alternate") {
             // One request covers this scene's whole set. A run of several
             // scenes is still several requests: a request carries one prompt.
-            const body = buildGenerateRequest(job.form, {
+            const body = buildGenerateRequest(withLibrary(job.form), {
               batchId,
               index,
               encodedVibes,
@@ -162,7 +224,7 @@ export function useGenerationEngine({ onImageSaved }: Options) {
           for (let n = 0; n < count; n++) {
             if (controller.signal.aborted) break;
             const slot = index++;
-            const body = buildGenerateRequest(job.form, {
+            const body = buildGenerateRequest(withLibrary(job.form), {
               batchId,
               index: slot,
               encodedVibes,
@@ -204,7 +266,7 @@ export function useGenerationEngine({ onImageSaved }: Options) {
         setState((current) => ({ ...current, isGenerating: false }));
       }
     },
-    [mode, onImageSaved, t]
+    [mode, onImageSaved, queryClient, t]
   );
 
   return { ...state, generate, cancel, removeImage, reset };

@@ -110,9 +110,9 @@ API では返さない。web が使っておらず、履歴の全件に付ける
 
 ## コレクション
 
-キャラクター・シチュエーション・スタイルの 3 種をレコード配列として保存する。
+キャラクター・シチュエーション・スタイル・参照ライブラリの 4 種をレコード配列として保存する。
 保存先は設定と同じ configDir を辿り、`<configDir>/collections/<name>.json` に書く。
-`<name>` は `characters` / `situations` / `styles` の 3 つだけで、それ以外は 404。
+`<name>` は `characters` / `situations` / `styles` / `references` の 4 つだけで、それ以外は 404。
 
 | メソッド | パス | 説明 |
 | --- | --- | --- |
@@ -131,6 +131,43 @@ API では返さない。web が使っておらず、履歴の全件に付ける
 1 件差し替える → 全件書き戻す」なので、エディターの自動保存のように重なると、
 どちらも同じスナップショットから始めて後勝ちになり、先の 1 件が黙って消える。
 数ミリ秒の順番待ちと引き換えにこの手の消失をなくしている。
+
+## 参照ライブラリ
+
+バイブ転送・精密参照に使う画像を保存しておき、生成のたびに貼り直さずに使う。
+レコード自体はコレクション `references`、画像はアセットに入るので、CRUD は
+それぞれの汎用エンドポイントを使う。ここにあるのは**エンコード結果の扱い**だけ。
+
+| メソッド | パス | 説明 |
+| --- | --- | --- |
+| `POST` | `/references/resolve` | body `{ ids }` → `{ items: ResolvedReference[] }` |
+| `DELETE` | `/references/:id/encoded` | 保存済みエンコードを捨てる。`{ ok: true }` |
+
+```ts
+type ResolvedReference = {
+  id: string;
+  kind: "vibe" | "reference";
+  image: string;    // base64。精密参照のときだけ入る
+  encoded: string;  // エンコード結果。バイブのときだけ入る
+  referenceType: string;
+  strength: number;
+  fidelity: number;
+};
+```
+
+**バイブのエンコードは 1 回だけ。** `/resolve` は、エンコード結果が
+`<configDir>/encoded-vibes/<id>.txt` に無いバイブだけをその場でエンコードして保存する。
+2 回目以降はファイルを読むだけなので Anlas を消費しない。同じ画像・同じ
+`information_extracted`・同じモデルなら結果は毎回同じなので、取っておけば足りる。
+
+エンコードのモデルは `nai-diffusion-4-5-full` に固定する。エンコード結果はモデル固有で、
+生成時のモデルに合わせると切り替えるたびにキャッシュが無効になり、保存する意味が消える。
+
+`information_extracted` を変えるとキャッシュは捨てられる（web 側が
+`DELETE /references/:id/encoded` を呼ぶ）。中身が変わったのに古い結果を送ると、
+設定と食い違ったものが出る。
+
+解決できなかった id は落として返す。壊れた 1 件で生成 1 回分を失わないため。
 
 ## アセット
 

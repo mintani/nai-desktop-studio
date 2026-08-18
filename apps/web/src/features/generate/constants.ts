@@ -107,6 +107,7 @@ export const INITIAL_FORM: FormState = {
   referenceMode: "vibe",
   vibes: [],
   references: [],
+  libraryReferenceIds: [],
 };
 
 /**

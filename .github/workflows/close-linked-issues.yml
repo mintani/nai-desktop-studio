@@ -1,0 +1,68 @@
+name: Close linked issues
+
+# GitHub only acts on "Closes #12" when the pull request lands on the default
+# branch. Everything here lands on dev, so the keyword draws the link and
+# nothing else happens — PR #4 and #5 both said Closes and left their issues
+# open. This does the closing.
+#
+# pull_request_target rather than pull_request: the workflow then runs from
+# dev's copy of this file with a token that may write, instead of from the
+# branch being merged. Nothing from the pull request is checked out or run —
+# only its body is read, and it is passed through the environment rather than
+# into the shell, because a body can contain anything.
+on:
+  pull_request_target:
+    types: [closed]
+    branches: [dev]
+
+permissions:
+  issues: write
+
+jobs:
+  close:
+    name: Close what the pull request said it closes
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close the linked issues
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          # The keyword must start a word, so "encloses #5" is not a closing
+          # reference. A cross-repo "owner/repo#9" has no "#" straight after
+          # the keyword and is left alone: this only closes its own issues.
+          numbers=$(printf '%s' "$BODY" \
+            | grep -oiE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?)[[:space:]]+#[0-9]+' \
+            | grep -oE '[0-9]+' | sort -un || true)
+
+          if [ -z "$numbers" ]; then
+            echo "No closing keyword in #$PR_NUMBER." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          for n in $numbers; do
+            # Issues and pull requests share one numbering, and a body may well
+            # point at another pull request. Only issues are closed here.
+            if ! meta=$(gh api "repos/$REPO/issues/$n" 2>/dev/null); then
+              echo "- #$n: no such issue" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+            if [ "$(printf '%s' "$meta" | jq -r '.pull_request // empty')" != "" ]; then
+              echo "- #$n: a pull request, left alone" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+            if [ "$(printf '%s' "$meta" | jq -r .state)" = "closed" ]; then
+              echo "- #$n: already closed" >> "$GITHUB_STEP_SUMMARY"
+              continue
+            fi
+
+            gh issue close "$n" --repo "$REPO" --reason completed \
+              --comment "Closed by #$PR_NUMBER ($PR_TITLE), merged into dev."
+            echo "- #$n: closed" >> "$GITHUB_STEP_SUMMARY"
+          done

@@ -1,0 +1,71 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build outputs
+dist
+build
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env*.local
+
+# IDEs and editors
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Turbo
+.turbo
+.nx
+
+# Better-T-Stack
+.alchemy
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.tgz
+.cache
+tmp
+temp
+
+novelai-sdk
+
+# Generated tag index artifact
+apps/server/src/tag-index.json
+
+# Design reference screenshots. Kept on disk, out of the repo — nothing in the
+# code or the docs points at them and they were 1.8 MB of the tracked tree.
+references/
+
+# Agent tooling. The skills under .agents/ are copies of other projects'
+# documentation, so they stay on disk but out of a public repo.
+.agents/
+.claude/
+.hallmark/
+skills-lock.json
+
+# Design notes. They lean on a design system kept outside this repo, so they
+# stay local rather than shipping half a reference.
+design.md

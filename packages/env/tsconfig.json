@@ -1,0 +1,3 @@
+{
+  "extends": "@nai-desktop-studio/config/tsconfig.base.json"
+}

@@ -1,0 +1,248 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@source "../../../apps/**/*.{ts,tsx}";
+@source "../**/*.{ts,tsx}";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =============================================================================
+ * Aurora / Aqua — the nai-desktop-studio design system
+ *
+ * The DNA of MinTani Portfolio (pale aqua paper, cyan accent, Poppins +
+ * JetBrains Mono) moved into a tool UI that holds up over long generation
+ * sessions. The values below are the system as this project uses it.
+ *
+ * The shadcn-derived variable names (--background, --primary, …) are referenced
+ * by 25 components, so the names stay. Only the values are swapped, plus a few
+ * signature tokens added.
+ * ============================================================================= */
+
+@theme inline {
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display-stack);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* The surface images sit on. Fixed at zero chroma so a color cast never
+   * changes how the image reads. */
+  --color-canvas: var(--canvas);
+  /* Accent for large display text only. Not for small text (contrast is too
+   * low). */
+  --color-accent-display: var(--accent-display);
+
+  /* Status colors. Never signal by color alone; always pair with a word. */
+  --color-ok: var(--ok);
+  --color-run: var(--run);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+
+  /* Only three easings. Do not use the browser default ease. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-pill: 999px;
+  --font-heading: var(--font-display);
+}
+
+/* ---------------------------------------------------------------------------
+ * Light — the portfolio's aqua.
+ * The paper uses the hero's trapezoidal wedge #e8f9fa (oklch 97% 0.018 201).
+ * The page ground #ceefee has chroma 0.034, which would disturb color judgment
+ * of generated images if spread across the whole tool UI, so it is used for the
+ * secondary / accent surfaces instead.
+ * --------------------------------------------------------------------------- */
+:root {
+  --radius: 0.75rem;
+
+  --dur-short: 150ms;
+  --dur-mid: 220ms;
+
+  /* Body text uses the Japanese system font. Poppins has no Japanese glyphs,
+   * so it is not used for body text. */
+  --font-body:
+    "Hiragino Kaku Gothic ProN", "ヒラギノ角ゴ ProN W3", "Hiragino Sans",
+    Meiryo, "Yu Gothic", YuGothic, system-ui, sans-serif;
+
+  /* For display and UI. Latin uses Poppins; Japanese falls back to the same
+   * Japanese stack, so mixed lines do not look mismatched. */
+  --font-display-stack: var(--font-poppins), var(--font-body);
+
+  --background: oklch(97% 0.018 201);
+  --foreground: oklch(30.5% 0 0);
+  --card: oklch(99.2% 0.006 200);
+  --card-foreground: oklch(30.5% 0 0);
+  --popover: oklch(99.5% 0.004 200);
+  --popover-foreground: oklch(30.5% 0 0);
+
+  /* The portfolio's #01c7ca sits at 1.93:1 on this paper, too low for text.
+   * This keeps the hue and drops L to 50% for 4.87:1 (5.28:1 for white on it),
+   * a body-text accent. */
+  --primary: oklch(50% 0.13 197);
+  --primary-foreground: oklch(100% 0 0);
+
+  --secondary: oklch(92.8% 0.034 194);
+  --secondary-foreground: oklch(30.5% 0 0);
+  --muted: oklch(94.5% 0.02 197);
+  --muted-foreground: oklch(46% 0 0);
+  --accent: oklch(92.8% 0.034 194);
+  --accent-foreground: oklch(30.5% 0 0);
+  --destructive: oklch(52% 0.2 27.3);
+
+  --border: oklch(30.5% 0 0 / 12%);
+  --input: oklch(30.5% 0 0 / 18%);
+  --ring: oklch(50% 0.13 197);
+
+  --canvas: oklch(94% 0 0);
+  --accent-display: oklch(75.2% 0.128 197);
+
+  --ok: oklch(48% 0.13 164);
+  --run: oklch(50% 0.13 197);
+  --warn: oklch(52% 0.12 328);
+  --bad: oklch(52% 0.2 27.3);
+
+  --chart-1: oklch(50% 0.13 197);
+  --chart-2: oklch(60% 0.1 197);
+  --chart-3: oklch(70% 0.07 197);
+  --chart-4: oklch(78% 0.05 197);
+  --chart-5: oklch(46% 0 0);
+
+  --sidebar: oklch(99.2% 0.006 200);
+  --sidebar-foreground: oklch(30.5% 0 0);
+  --sidebar-primary: oklch(50% 0.13 197);
+  --sidebar-primary-foreground: oklch(100% 0 0);
+  --sidebar-accent: oklch(92.8% 0.034 194);
+  --sidebar-accent-foreground: oklch(30.5% 0 0);
+  --sidebar-border: oklch(30.5% 0 0 / 12%);
+  --sidebar-ring: oklch(50% 0.13 197);
+}
+
+/* ---------------------------------------------------------------------------
+ * Dark. The paper stays a very low-chroma (C 0.012) indigo-green. Coloring it
+ * more would make it hard to judge the colors of generated images, so all the
+ * color is carried by the single accent hue.
+ * --------------------------------------------------------------------------- */
+.dark {
+  --background: oklch(17% 0.012 210);
+  --foreground: oklch(96% 0.006 200);
+  --card: oklch(22% 0.014 210);
+  --card-foreground: oklch(96% 0.006 200);
+  --popover: oklch(24% 0.014 210);
+  --popover-foreground: oklch(96% 0.006 200);
+
+  --primary: oklch(80% 0.13 197);
+  --primary-foreground: oklch(20% 0.02 200);
+
+  --secondary: oklch(27% 0.016 210);
+  --secondary-foreground: oklch(96% 0.006 200);
+  --muted: oklch(27% 0.016 210);
+  --muted-foreground: oklch(72% 0.012 200);
+  --accent: oklch(30% 0.016 210);
+  --accent-foreground: oklch(96% 0.006 200);
+  --destructive: oklch(70.4% 0.191 22.2);
+
+  --border: oklch(100% 0 0 / 12%);
+  --input: oklch(100% 0 0 / 16%);
+  --ring: oklch(80% 0.13 197);
+
+  --canvas: oklch(12% 0 0);
+  --accent-display: oklch(80% 0.13 197);
+
+  --ok: oklch(85.6% 0.137 164);
+  --run: oklch(80% 0.13 197);
+  --warn: oklch(81.6% 0.119 328);
+  --bad: oklch(70.4% 0.191 22.2);
+
+  --chart-1: oklch(80% 0.13 197);
+  --chart-2: oklch(70% 0.11 197);
+  --chart-3: oklch(60% 0.09 197);
+  --chart-4: oklch(50% 0.07 197);
+  --chart-5: oklch(72% 0.012 200);
+
+  --sidebar: oklch(22% 0.014 210);
+  --sidebar-foreground: oklch(96% 0.006 200);
+  --sidebar-primary: oklch(80% 0.13 197);
+  --sidebar-primary-foreground: oklch(20% 0.02 200);
+  --sidebar-accent: oklch(30% 0.016 210);
+  --sidebar-accent-foreground: oklch(96% 0.006 200);
+  --sidebar-border: oklch(100% 0 0 / 12%);
+  --sidebar-ring: oklch(80% 0.13 197);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply font-sans bg-background text-foreground;
+  }
+  /* The UI is laid out in rem down to the panel width, so the root size is the
+   * one dial that scales all of it. Held at 16px up to 1920 and grown to 24px
+   * by 3840, otherwise a 4K screen just shows the same UI with more empty
+   * space around it. */
+  html {
+    @apply font-sans;
+    font-size: clamp(16px, 0.4167vw + 8px, 24px);
+  }
+  /* Numbers in monospace, so seed, resolution, Anlas, and step count line up
+   * vertically. */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+  /* The only place a shadow is allowed: the selected face of a segmented
+   * control. */
+  .shadow-segment {
+    box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
+  }
+}
+
+/* Under reduced-motion, drop spatial movement to a 150ms opacity only. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-property: opacity !important;
+    transition-duration: var(--dur-short) !important;
+    scroll-behavior: auto !important;
+  }
+}

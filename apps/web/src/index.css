@@ -1,0 +1,8 @@
+@import "@nai-desktop-studio/ui/globals.css";
+
+/* The shared stylesheet asks for these two by name; next/font used to supply
+ * them. Now the faces are bundled, so the app names them here. */
+:root {
+  --font-poppins: "Poppins", sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+}

@@ -1,0 +1,72 @@
+name: Desktop
+
+# Packaging breaks in ways the type checker cannot see — a sidecar that will
+# not start, a resource that is not where the server looks for it — and none
+# of it shows up until an installer is actually built. This runs whenever
+# something that ends up inside the bundle changes.
+on:
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - "apps/desktop/**"
+      - "apps/server/**"
+      - "apps/web/vite.config.ts"
+      - "packages/env/**"
+      - "scripts/danbooru_e621_merged.csv"
+      - ".github/workflows/desktop.yml"
+      - "bun.lock"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            label: macOS (Apple Silicon)
+          - os: windows-latest
+            label: Windows
+    runs-on: ${{ matrix.os }}
+    env:
+      VITE_SERVER_URL: http://localhost:3000
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # The Bun this copies as the sidecar is the runner's own, so each
+      # platform's installer carries a runtime built for it.
+      - name: Assemble the bundle payload
+        working-directory: apps/desktop
+        run: bun run payload
+
+      - name: Build the app
+        working-directory: apps/desktop
+        run: bun run tauri build
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.os }}
+          path: apps/desktop/src-tauri/target/release/bundle/**
+          if-no-files-found: error
+          retention-days: 7

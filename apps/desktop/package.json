@@ -1,0 +1,18 @@
+{
+  "name": "desktop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "payload": "bun run scripts/prepare-payload.ts",
+    "check-types": "tsc --noEmit",
+    "tauri": "tauri",
+    "dev:app": "bun run payload && tauri dev",
+    "package": "bun run payload && tauri build"
+  },
+  "devDependencies": {
+    "@nai-desktop-studio/config": "workspace:*",
+    "@tauri-apps/cli": "^2.9.4",
+    "@types/bun": "catalog:",
+    "typescript": "^5"
+  }
+}

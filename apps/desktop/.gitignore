@@ -1,0 +1,8 @@
+# Everything the payload script assembles. All of it is derived from the rest
+# of the repository, and the Bun runtime alone is ~100 MB.
+src-tauri/binaries/
+src-tauri/resources/
+
+# Cargo build output, and the schemas Tauri generates from the config.
+src-tauri/target/
+src-tauri/gen/

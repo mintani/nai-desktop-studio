@@ -1,0 +1,22 @@
+[package]
+name = "nai-desktop-studio"
+# Not the version that ships. tauri.conf.json reads the real one from the
+# repository's package.json, which is also what the release workflow watches.
+version = "0.0.0"
+description = "NovelAI image generation, kept on your own machine"
+edition = "2021"
+rust-version = "1.77.2"
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

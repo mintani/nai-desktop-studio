@@ -1,12 +1,14 @@
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { Elysia } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
 import { env } from "@nai-desktop-studio/env/server";
 import { createNovelAIClient } from "@nai-desktop-studio/novelai";
 import type { EncodeVibeBody } from "@nai-desktop-studio/novelai";
 import { readAssetBase64 } from "./assets";
 import { patchCollectionRecord, readCollection } from "./collections";
+import { onInvalid } from "./http";
 import { configDir } from "./paths";
 import { getApiKey } from "./settings";
 
@@ -157,14 +159,14 @@ async function resolveOne(
   };
 }
 
-export const referencesRouter = new Elysia({ prefix: "/references" })
+export const referencesRouter = new Hono()
   .post(
     "/resolve",
-    async ({ body, set }) => {
+    zValidator("json", resolveBodySchema, onInvalid),
+    async (c) => {
       const apiKey = await getApiKey();
       if (!apiKey) {
-        set.status = 428;
-        return { error: "NovelAI API key is not configured" };
+        return c.json({ error: "NovelAI API key is not configured" }, 428);
       }
       const { encodeVibe } = createNovelAIClient({
         apiKey,
@@ -178,7 +180,7 @@ export const referencesRouter = new Elysia({ prefix: "/references" })
       // Sequential: each miss is a paid network call, and doing them at once
       // only makes a rate limit more likely.
       const items: ResolvedReference[] = [];
-      for (const id of body.ids) {
+      for (const id of c.req.valid("json").ids) {
         const record = byId.get(id);
         if (!record) continue;
         try {
@@ -190,16 +192,13 @@ export const referencesRouter = new Elysia({ prefix: "/references" })
           console.error(`[references] could not resolve ${id}:`, error);
         }
       }
-      return { items };
-    },
-    { body: resolveBodySchema }
-  )
-  .delete("/:id/encoded", async ({ params, set }) => {
-    if (!ID_PATTERN.test(params.id)) {
-      set.status = 400;
-      return { error: "Invalid id" };
+      return c.json({ items });
     }
-    await deleteEncoded(params.id);
-    await patchCollectionRecord("references", params.id, { encodedAt: null });
-    return { ok: true };
+  )
+  .delete("/:id/encoded", async (c) => {
+    const id = c.req.param("id");
+    if (!ID_PATTERN.test(id)) return c.json({ error: "Invalid id" }, 400);
+    await deleteEncoded(id);
+    await patchCollectionRecord("references", id, { encodedAt: null });
+    return c.json({ ok: true });
   });

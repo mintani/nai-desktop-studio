@@ -5,14 +5,17 @@ import viteReact, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 /**
- * SPA only. The app talks to the local Elysia server on another port and is
+ * SPA only. The app talks to the local API server on another port and is
  * meant to end up inside a Tauri WebView, so there is nothing for a render
  * server to do — server rendering would only be weight to ship and a second
  * process to keep alive. The server build that happens here is used once, to
  * prerender the shell, and is not part of what runs.
  */
 export default defineConfig({
-  server: { port: 3001 },
+  // Bound to every interface, not just localhost. The app is developed over
+  // SSH on a machine with no desktop, so the browser that opens it is always
+  // on another machine — and the API next door already listens the same way.
+  server: { port: 3001, host: true },
   // `@/*` and `@nai-desktop-studio/ui/*` are declared once, in tsconfig.json.
   resolve: { tsconfigPaths: true },
   plugins: [

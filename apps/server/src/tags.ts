@@ -1,8 +1,11 @@
 import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { Elysia } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
+
+import { onInvalid } from "./http";
 
 interface IndexedTag {
   name: string;
@@ -139,12 +142,13 @@ const searchQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).optional(),
 });
 
-export const tagsRouter = new Elysia({ prefix: "/tags" }).get(
+export const tagsRouter = new Hono().get(
   "/search",
-  async ({ query }) => {
+  zValidator("query", searchQuerySchema, onInvalid),
+  async (c) => {
+    const { q, limit } = c.req.valid("query");
     const allTags = await loadTags();
-    const results = searchTags(allTags, query.q, query.limit ?? 20);
-    return { query: query.q, results, total: results.length };
-  },
-  { query: searchQuerySchema }
+    const results = searchTags(allTags, q, limit ?? 20);
+    return c.json({ query: q, results, total: results.length });
+  }
 );

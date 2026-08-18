@@ -1,7 +1,9 @@
 import { mkdir, rename, rm, writeFile } from "node:fs/promises";
 import { extname, join } from "node:path";
-import { Elysia } from "elysia";
+import { zValidator } from "@hono/zod-validator";
+import { Hono } from "hono";
 import { z } from "zod";
+import { onInvalid } from "./http";
 import { configDir } from "./paths";
 
 // The id is used in filesystem paths, so restrict the character set to
@@ -51,57 +53,43 @@ const postBodySchema = z.object({
   contentType: z.string().min(1),
 });
 
-export const assetsRouter = new Elysia({ prefix: "/assets" })
-  .post(
-    "/",
-    async ({ body, set }) => {
-      const ext = EXT_BY_TYPE[body.contentType];
-      if (!ext) {
-        set.status = 415;
-        return { error: "Unsupported content type" };
-      }
+export const assetsRouter = new Hono()
+  .post("/", zValidator("json", postBodySchema, onInvalid), async (c) => {
+    const body = c.req.valid("json");
+    const ext = EXT_BY_TYPE[body.contentType];
+    if (!ext) return c.json({ error: "Unsupported content type" }, 415);
 
-      const bytes = Buffer.from(body.imageBase64, "base64");
-      if (bytes.length === 0) {
-        set.status = 400;
-        return { error: "Empty image data" };
-      }
-      if (bytes.length > MAX_BYTES) {
-        set.status = 413;
-        return { error: "Image exceeds the 10 MB limit" };
-      }
-
-      const id = crypto.randomUUID();
-      const dir = assetsDir();
-      await mkdir(dir, { recursive: true });
-      const file = join(dir, `${id}.${ext}`);
-      const tmp = join(dir, `.${id}.${crypto.randomUUID()}.tmp`);
-      await writeFile(tmp, bytes);
-      await rename(tmp, file).catch(async (error) => {
-        await rm(tmp, { force: true });
-        throw error;
-      });
-
-      return { id, path: `/assets/${id}/file` };
-    },
-    { body: postBodySchema }
-  )
-  .get("/:id/file", async ({ params, set }) => {
-    const path = await findAssetPath(params.id);
-    if (!path) {
-      set.status = 404;
-      return { error: "Asset not found" };
+    const bytes = Buffer.from(body.imageBase64, "base64");
+    if (bytes.length === 0) return c.json({ error: "Empty image data" }, 400);
+    if (bytes.length > MAX_BYTES) {
+      return c.json({ error: "Image exceeds the 10 MB limit" }, 413);
     }
-    const type = TYPE_BY_EXT[extname(path).slice(1)];
-    if (type) set.headers["Content-Type"] = type;
-    return Bun.file(path);
+
+    const id = crypto.randomUUID();
+    const dir = assetsDir();
+    await mkdir(dir, { recursive: true });
+    const file = join(dir, `${id}.${ext}`);
+    const tmp = join(dir, `.${id}.${crypto.randomUUID()}.tmp`);
+    await writeFile(tmp, bytes);
+    await rename(tmp, file).catch(async (error) => {
+      await rm(tmp, { force: true });
+      throw error;
+    });
+
+    return c.json({ id, path: `/assets/${id}/file` });
   })
-  .delete("/:id", async ({ params, set }) => {
-    const path = await findAssetPath(params.id);
-    if (!path) {
-      set.status = 404;
-      return { error: "Asset not found" };
-    }
+  .get("/:id/file", async (c) => {
+    const path = await findAssetPath(c.req.param("id"));
+    if (!path) return c.json({ error: "Asset not found" }, 404);
+    const type = TYPE_BY_EXT[extname(path).slice(1)];
+    return new Response(
+      Bun.file(path),
+      type ? { headers: { "Content-Type": type } } : undefined
+    );
+  })
+  .delete("/:id", async (c) => {
+    const path = await findAssetPath(c.req.param("id"));
+    if (!path) return c.json({ error: "Asset not found" }, 404);
     await rm(path, { force: true });
-    return { ok: true };
+    return c.json({ ok: true });
   });

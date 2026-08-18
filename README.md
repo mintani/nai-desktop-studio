@@ -86,8 +86,17 @@ main            リリース相当。dev からのみ入る
 - **Issue を立ててから作業する。** ブランチ名に Issue 番号を入れる
   （`feat/12-batch-preview` / `fix/34-thumbnail-cache`）
 - PR は `dev` 宛て。本文に `Closes #12` を書いて Issue と紐づける
-- `main` への PR はリリースのときだけ
+- `main` への PR はリリースのときだけ。その PR で `package.json` の `version` を上げる
 - コミットは Conventional Commits（スコープ付き）、件名 1 行・72 文字以内
+
+### リリース
+
+`main` の `version` が前回と変わると `.github/workflows/release.yml` が動き、Windows と
+Apple Silicon の macOS 分のインストーラを作って `v<version>` の**下書きリリース**に添付する。
+中身を確かめてから Releases タブで公開する。
+
+version を上げなければ何も起きない。上げ忘れが黙ってリリース無しになるので、判断した結果は
+どちらでも Actions のサマリに出る（「Version is still 0.1.0 — nothing to release.」）。
 
 ## タグ補完について
 

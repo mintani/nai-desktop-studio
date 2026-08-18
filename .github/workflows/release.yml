@@ -1,0 +1,108 @@
+name: Release
+
+# Merging into main does not release on its own — plenty of merges are not
+# releases. The version in package.json is what says "this one is": when it
+# changes, the installers for that version get built and attached to a draft
+# release. The trade is that forgetting to raise it is silent, so the check
+# job writes what it decided into the run's summary either way.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    name: Check the version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      changed: ${{ steps.version.outputs.changed }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compare the version with the previous main
+        id: version
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          version=$(jq -r .version package.json)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          # A manual run has no previous commit to compare against, and
+          # neither does the very first push. Both mean "build it".
+          previous=""
+          if [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ]; then
+            previous=$(git show "$BEFORE:package.json" 2>/dev/null | jq -r '.version // empty' || true)
+          fi
+
+          if [ "$version" = "$previous" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Version is still $version — nothing to release." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Version ${previous:-(unknown)} → $version — building installers." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  release:
+    name: ${{ matrix.label }}
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            label: macOS (Apple Silicon)
+          - os: windows-latest
+            label: Windows
+    runs-on: ${{ matrix.os }}
+    env:
+      VITE_SERVER_URL: http://localhost:3000
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # tauri-action runs `tauri build` itself, and the config has no
+      # beforeBuildCommand, so what goes inside the bundle is assembled here.
+      - name: Assemble the bundle payload
+        working-directory: apps/desktop
+        run: bun run payload
+
+      # A draft, not a release. The installers cannot be tried before they
+      # exist, so this leaves them somewhere to be downloaded and run before
+      # anyone else is told about them. Publishing is one click in the
+      # Releases tab.
+      - name: Build and attach the installers
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: apps/desktop
+          tagName: v${{ needs.check.outputs.version }}
+          releaseName: v${{ needs.check.outputs.version }}
+          releaseDraft: true
+          prerelease: false

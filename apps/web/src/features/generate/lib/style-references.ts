@@ -1,16 +1,21 @@
+import {
+  MAX_CHARACTER_REFERENCES,
+  MAX_VIBE_REFERENCES,
+} from "@nai-desktop-studio/novelai/constants";
+
 import { loadAssetAsBase64 } from "@/features/library/asset-image";
 import { assetUrl } from "@/features/library/collections";
 import type { Style } from "@/features/styles/types/style";
 
-import { MAX_REFERENCES, MAX_VIBES } from "../types/reference";
 import type { AdhocReference, AdhocVibe } from "../types/reference";
 
 /**
  * Turns a style's stored images into form entries. The style keeps paths, but a
  * generation sends bytes, so each image is fetched back here.
  *
- * The panel holds fewer images than a style may, so the extras are dropped
- * rather than sent — the caller reports how many were kept.
+ * A style cannot hold more than a request may carry, so nothing is normally
+ * dropped here; the slice only guards a style saved before the limit was what
+ * it is now. The caller reports anything that did not make it.
  */
 export async function loadStyleReferenceImages(style: Style) {
   const vibes = [...style.vibes].sort((a, b) => a.sortOrder - b.sortOrder);
@@ -20,7 +25,7 @@ export async function loadStyleReferenceImages(style: Style) {
 
   const [loadedVibes, loadedReferences] = await Promise.all([
     Promise.all(
-      vibes.slice(0, MAX_VIBES).map(
+      vibes.slice(0, MAX_VIBE_REFERENCES).map(
         async (vibe): Promise<AdhocVibe> => ({
           id: vibe.id,
           previewUrl: assetUrl(vibe.imagePath),
@@ -31,7 +36,7 @@ export async function loadStyleReferenceImages(style: Style) {
       )
     ),
     Promise.all(
-      references.slice(0, MAX_REFERENCES).map(
+      references.slice(0, MAX_CHARACTER_REFERENCES).map(
         async (reference): Promise<AdhocReference> => ({
           id: reference.id,
           previewUrl: assetUrl(reference.imagePath),

@@ -103,6 +103,17 @@ export const CHARACTER_REFERENCE_EXTRA_ANLAS = 5;
 // The first 4 vibes are free. Each vibe past the 4th costs VIBE_EXTRA_ANLAS.
 export const VIBE_FREE_COUNT = 4;
 
+/**
+ * How many reference images one request may carry.
+ *
+ * A style and a single generation are bounded by the same request, so the
+ * numbers live here rather than once per screen. They were duplicated before,
+ * with the generate panel capped at half the style's figure, which silently
+ * dropped the extra images on the way to a request.
+ */
+export const MAX_VIBE_REFERENCES = 16;
+export const MAX_CHARACTER_REFERENCES = 6;
+
 export const ZIP_LOCAL_FILE_HEADER_SIGNATURE = 0x04034b50;
 export const ZIP_CENTRAL_DIRECTORY_SIGNATURE = 0x02014b50;
 export const ZIP_END_OF_CENTRAL_DIRECTORY_SIGNATURE = 0x06054b50;

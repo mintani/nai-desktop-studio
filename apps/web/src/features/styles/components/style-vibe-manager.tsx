@@ -1,12 +1,12 @@
 "use client";
 
+import { MAX_VIBE_REFERENCES } from "@nai-desktop-studio/novelai/constants";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { LabeledSlider } from "@/components/labeled-slider";
 import { useT } from "@/i18n/provider";
 
-import { MAX_STYLE_VIBES } from "../types/style";
 import {
   AddImageButton,
   imageSrc,
@@ -80,7 +80,7 @@ type Props = {
 
 export function StyleVibeManager({ vibes, onChange, blocked }: Props) {
   const t = useT();
-  const atMax = vibes.length >= MAX_STYLE_VIBES;
+  const atMax = vibes.length >= MAX_VIBE_REFERENCES;
 
   async function handleAdd(file: File) {
     const read = await readPendingImage(file);
@@ -120,7 +120,7 @@ export function StyleVibeManager({ vibes, onChange, blocked }: Props) {
       <div className="space-y-1">
         <h4 className="text-sm font-medium">{t("styles.vibes.title")}</h4>
         <p className="text-muted-foreground text-xs leading-tight">
-          {t("styles.vibes.hint", { max: MAX_STYLE_VIBES })}
+          {t("styles.vibes.hint", { max: MAX_VIBE_REFERENCES })}
         </p>
         <p className="text-muted-foreground text-xs leading-tight">
           {t("styles.vibes.encodeNote")}

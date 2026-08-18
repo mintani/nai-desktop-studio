@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useDeferredValue, useMemo } from "react";
 
+import { useReferences } from "@/features/reference-library/hooks/queries";
 import { useSettings } from "@/features/settings/hooks/queries";
 import { useT } from "@/i18n/provider";
 
@@ -18,7 +19,23 @@ import type { FormState } from "../types/generate";
 export function useAnlasEstimate(form: FormState, imageCount?: number) {
   const t = useT();
   const { data: settings } = useSettings();
+  const { references } = useReferences();
   const isOpus = settings?.plan === "opus";
+
+  // Library entries count towards the vibe total, but only the ones with no
+  // stored encode still cost the 2 Anlas — that is the whole point of saving
+  // them, so the figure on the button has to show it.
+  const picked = form.libraryReferenceIds.flatMap((id) => {
+    const found = references.find((entry) => entry.id === id);
+    return found && found.kind === form.referenceMode ? [found] : [];
+  });
+  const libraryVibes = form.referenceMode === "vibe" ? picked.length : 0;
+  const libraryUncached =
+    form.referenceMode === "vibe"
+      ? picked.filter((entry) => entry.encodedAt === null).length
+      : 0;
+  const libraryReferences =
+    form.referenceMode === "reference" ? picked.length : 0;
   const mode = settings?.generationMode ?? "queue";
 
   // useDeferredValue compares by reference identity, so passing a new object
@@ -32,10 +49,13 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
       // A batch run covers several scenes, so the number of images is not
       // form.nSamples but scenes x nSamples. The caller knows the scene count.
       nSamples: imageCount ?? form.nSamples,
-      vibeCount: form.referenceMode === "vibe" ? form.vibes.length : 0,
+      vibeCount:
+        form.referenceMode === "vibe" ? form.vibes.length + libraryVibes : 0,
+      uncachedVibeCount:
+        form.referenceMode === "vibe" ? form.vibes.length + libraryUncached : 0,
       referenceCount:
         form.referenceMode === "reference" && supportsReferences(form.model)
-          ? form.references.length
+          ? form.references.length + libraryReferences
           : 0,
       i2iStrength: form.i2i?.strength ?? null,
       isOpus,
@@ -50,6 +70,9 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
       form.referenceMode,
       form.vibes.length,
       form.references.length,
+      libraryVibes,
+      libraryUncached,
+      libraryReferences,
       form.i2i?.strength,
       isOpus,
       mode,
@@ -71,9 +94,9 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
         n_samples: deferred.mode === "alternate" ? deferred.nSamples : 1,
         character_reference_count: deferred.referenceCount,
         vibe_reference_count: deferred.vibeCount,
-        // An ad-hoc vibe is encoded once per batch, so always count it as
-        // uncached.
-        uncached_vibe_count: deferred.vibeCount,
+        // An image dropped into the panel is encoded once per batch, so it is
+        // always uncached. A library entry that already has its encode is not.
+        uncached_vibe_count: deferred.uncachedVibeCount,
         // Opus makes small generations free, which changes the number shown on
         // the generate button.
         is_opus: deferred.isOpus,

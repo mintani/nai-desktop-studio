@@ -6,6 +6,7 @@ import { assetsRouter } from "./assets";
 import { collectionsRouter } from "./collections";
 import { imagesRouter } from "./library";
 import { novelaiRouter } from "./novelai";
+import { referencesRouter } from "./references";
 import { settingsRouter } from "./settings";
 import { tagsRouter } from "./tags";
 
@@ -26,6 +27,7 @@ const app = new Elysia()
   .use(tagsRouter)
   .use(collectionsRouter)
   .use(assetsRouter)
+  .use(referencesRouter)
   .get("/", () => "OK")
   .listen(env.PORT, () => {
     console.log(`Server is running on http://localhost:${env.PORT}`);

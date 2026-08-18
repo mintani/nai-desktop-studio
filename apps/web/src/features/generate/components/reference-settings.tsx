@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@nai-desktop-studio/ui/components/button";
+import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import {
   Select,
   SelectContent,
@@ -8,12 +9,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@nai-desktop-studio/ui/components/select";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { ImagePlus, Library, Trash2, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { LabeledSlider } from "@/components/labeled-slider";
+import { assetUrl } from "@/features/library/collections";
 import { SegmentedControl } from "@/components/segmented-control";
+import { ReferencePickerDialog } from "@/features/reference-library/components/reference-picker-dialog";
+import { useReferences } from "@/features/reference-library/hooks/queries";
 import { useT } from "@/i18n/provider";
 import type { MessageKey } from "@/i18n/messages";
 
@@ -288,7 +292,12 @@ function I2iRow({
 type Props = {
   form: Pick<
     FormState,
-    "model" | "i2i" | "referenceMode" | "vibes" | "references"
+    | "model"
+    | "i2i"
+    | "referenceMode"
+    | "vibes"
+    | "references"
+    | "libraryReferenceIds"
   >;
   update: (patch: Partial<FormState>) => void;
 };
@@ -300,6 +309,14 @@ type Props = {
  * alongside either.
  */
 export function ReferenceSettings({ form, update }: Props) {
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const { references } = useReferences();
+  // Only the ones that still exist and match the current mode: a reference
+  // saved as a vibe cannot go out in a precise-reference run.
+  const picked = form.libraryReferenceIds.flatMap((id) => {
+    const found = references.find((entry) => entry.id === id);
+    return found && found.kind === form.referenceMode ? [found] : [];
+  });
   const t = useT();
   const referenceAvailable = supportsReferences(form.model);
 
@@ -500,7 +517,77 @@ export function ReferenceSettings({ form, update }: Props) {
             />
           </div>
         )}
+        {/* Saved references. Separate from the images added above because
+            these keep their encode: picking one again costs nothing, while a
+            fresh drop pays 2 Anlas every run. */}
+        <div className="space-y-1.5 border-t pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-full justify-between rounded-sm! px-2 font-normal"
+            onClick={() => setLibraryOpen(true)}
+          >
+            <span
+              className={cn(
+                "truncate",
+                picked.length === 0 && "text-muted-foreground"
+              )}
+            >
+              {picked.length > 0
+                ? t("referenceLibrary.picked", { count: picked.length })
+                : t("referenceLibrary.open")}
+            </span>
+            <Library className="text-muted-foreground shrink-0" aria-hidden />
+          </Button>
+          {picked.length > 0 && (
+            <ul className="flex flex-wrap gap-1">
+              {picked.map((entry) => (
+                <li
+                  key={entry.id}
+                  className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-1.5 text-[10px]"
+                >
+                  <img
+                    src={assetUrl(entry.imagePath)}
+                    alt=""
+                    className="size-4 shrink-0 rounded-full object-cover"
+                  />
+                  <span className="truncate">{entry.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    className="text-muted-foreground hover:text-destructive size-4"
+                    title={t("generate.character.remove")}
+                    onClick={() =>
+                      update({
+                        libraryReferenceIds: form.libraryReferenceIds.filter(
+                          (id) => id !== entry.id
+                        ),
+                      })
+                    }
+                  >
+                    <X className="size-2.5" aria-hidden />
+                    <span className="sr-only">
+                      {t("generate.character.remove")}
+                    </span>
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </section>
+
+      <ReferencePickerDialog
+        open={libraryOpen}
+        onOpenChange={setLibraryOpen}
+        kind={form.referenceMode}
+        selectedIds={form.libraryReferenceIds}
+        onSelectedChange={(libraryReferenceIds) =>
+          update({ libraryReferenceIds })
+        }
+      />
     </div>
   );
 }

@@ -37,6 +37,15 @@ async function findAssetPath(id: string): Promise<string | null> {
   return null;
 }
 
+/** The bytes behind an `/assets/<id>/file` path, for server-side use. */
+export async function readAssetBase64(path: string): Promise<string | null> {
+  const id = /\/assets\/([^/]+)/.exec(path)?.[1];
+  if (!id) return null;
+  const file = await findAssetPath(id);
+  if (!file) return null;
+  return Buffer.from(await Bun.file(file).arrayBuffer()).toString("base64");
+}
+
 const postBodySchema = z.object({
   imageBase64: z.string().min(1),
   contentType: z.string().min(1),

@@ -3,7 +3,12 @@ import { join } from "node:path";
 import { Elysia } from "elysia";
 import { configDir } from "./paths";
 
-const COLLECTION_NAMES = ["characters", "situations", "styles"] as const;
+const COLLECTION_NAMES = [
+  "characters",
+  "situations",
+  "styles",
+  "references",
+] as const;
 type CollectionName = (typeof COLLECTION_NAMES)[number];
 
 function isCollectionName(value: string): value is CollectionName {
@@ -135,6 +140,26 @@ function byUpdatedAtDesc(a: CollectionRecord, b: CollectionRecord): number {
   const ua = typeof a.updatedAt === "string" ? a.updatedAt : "";
   const ub = typeof b.updatedAt === "string" ? b.updatedAt : "";
   return ub.localeCompare(ua);
+}
+
+/** Reads a collection from inside the server. The web owns the shape, so the
+ * caller narrows it. */
+export async function readCollection(
+  name: CollectionName
+): Promise<CollectionRecord[]> {
+  return load(name);
+}
+
+/** Replaces one record in place. Used to write back a cached encode. */
+export async function patchCollectionRecord(
+  name: CollectionName,
+  id: string,
+  patch: Record<string, unknown>
+): Promise<void> {
+  const current = await load(name);
+  const found = current.find((record) => record.id === id);
+  if (!found) return;
+  await upsert(name, { ...found, ...patch, id });
 }
 
 export const collectionsRouter = new Elysia({ prefix: "/collections" })

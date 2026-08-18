@@ -11,6 +11,8 @@
     "dist",
     "build",
     "tag-index.json",
-    "**/routeTree.gen.ts"
+    "**/routeTree.gen.ts",
+    "apps/desktop/src-tauri/resources",
+    "apps/desktop/src-tauri/binaries"
   ]
 }

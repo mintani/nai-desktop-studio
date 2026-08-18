@@ -18,9 +18,9 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { LabeledSlider } from "@/components/labeled-slider";
-import { assetUrl } from "@/features/library/collections";
 import { SegmentedControl } from "@/components/segmented-control";
 import { ReferencePickerDialog } from "@/features/reference-library/components/reference-picker-dialog";
+import { referenceImageUrl } from "@/features/reference-library/lib/api";
 import { useReferences } from "@/features/reference-library/hooks/queries";
 import { useT } from "@/i18n/provider";
 import type { MessageKey } from "@/i18n/messages";
@@ -546,7 +546,7 @@ export function ReferenceSettings({ form, update }: Props) {
                   className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-1.5 text-[10px]"
                 >
                   <img
-                    src={assetUrl(entry.imagePath)}
+                    src={referenceImageUrl(entry.id)}
                     alt=""
                     className="size-4 shrink-0 rounded-full object-cover"
                   />

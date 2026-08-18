@@ -47,10 +47,3 @@ export type I2iSource = {
   strength: number;
   noise: number;
 };
-
-/** The first 4 vibes are free to add; from the 5th on it's 2 Anlas each. */
-export const VIBE_FREE_COUNT = 4;
-export const VIBE_EXTRA_ANLAS = 2;
-export const CHARACTER_REFERENCE_EXTRA_ANLAS = 5;
-export const MAX_VIBES = 8;
-export const MAX_REFERENCES = 4;

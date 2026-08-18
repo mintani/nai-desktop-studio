@@ -18,6 +18,7 @@ import { INITIAL_FORM } from "../constants";
 import { useAnlasEstimate } from "../hooks/use-anlas-estimate";
 import { useGenerationEngine } from "../hooks/use-generation-engine";
 import { useImageLibrary } from "../hooks/use-image-library";
+import { useReferenceSpend } from "../hooks/use-reference-spend";
 import { supportsReferences } from "../lib/build-request";
 import {
   COMPOSED_PROMPT_FLAGS,
@@ -42,6 +43,7 @@ import type {
 import type { GeneratedImage, GenerationSlot } from "../types/image";
 import { EMPTY_TEMPLATE_SELECTION } from "../types/template";
 import type { TemplateSelection } from "../types/template";
+import { AnlasConfirmDialog } from "./anlas-confirm-dialog";
 import { GeneratePanel } from "./generate-panel";
 import { HistoryFooter } from "./history-footer";
 import { ImageGrid } from "./image-grid";
@@ -119,7 +121,11 @@ export function GenerateWorkspace() {
     mode === "batch"
       ? templateSelection.situationIds.length * form.nSamples
       : form.nSamples;
-  const { anlasText } = useAnlasEstimate(form, plannedImages);
+  const { anlasText, referenceCost } = useAnlasEstimate(form, plannedImages);
+  // Jobs waiting on the Anlas confirmation. Held rather than rebuilt on
+  // confirm so the run is exactly what the figures were quoted for.
+  const [pendingJobs, setPendingJobs] = useState<GenerationJob[] | null>(null);
+  const spendsOnReferences = useReferenceSpend(form);
 
   const update = useCallback((patch: Partial<FormState>) => {
     setForm((current) => {
@@ -236,7 +242,14 @@ export function GenerateWorkspace() {
     setViewedBatch(null);
     setSelectedIds([]);
     const jobs = await buildJobs();
-    if (jobs.length > 0) await engine.generate(jobs);
+    if (jobs.length === 0) return;
+    // Reference images are the part that is spent on top and cannot be taken
+    // back, so a run that pays for them stops here first.
+    if (spendsOnReferences) {
+      setPendingJobs(jobs);
+      return;
+    }
+    await engine.generate(jobs);
   }
 
   const canGenerate =
@@ -434,6 +447,17 @@ export function GenerateWorkspace() {
       />
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+      <AnlasConfirmDialog
+        open={pendingJobs !== null}
+        cost={referenceCost}
+        onCancel={() => setPendingJobs(null)}
+        onConfirm={() => {
+          const jobs = pendingJobs;
+          setPendingJobs(null);
+          if (jobs) void engine.generate(jobs);
+        }}
+      />
     </div>
   );
 }

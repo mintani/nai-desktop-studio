@@ -150,6 +150,20 @@ const en = {
   "referenceLibrary.resolveError":
     "Could not read the library, so this run goes without it.",
   "referenceLibrary.dropped": "Left out {count} library reference(s).",
+  "referenceLibrary.atMax":
+    "This run already carries as many reference images as it can.",
+
+  "generate.anlasConfirm.title": "This run spends Anlas",
+  "generate.anlasConfirm.description":
+    "The reference images add about {count} Anlas on top of the images themselves. Go ahead?",
+  "generate.anlasConfirm.pending": "Working out what this run costs\u2026",
+  "generate.anlasConfirm.encoding":
+    "Encoding the vibe images: {count} Anlas, once — reused free after that",
+  "generate.anlasConfirm.vibe":
+    "Vibes past the free four: {count} Anlas across the run",
+  "generate.anlasConfirm.precise":
+    "Precise references: {count} Anlas across the run",
+  "generate.anlasConfirm.confirm": "Generate",
 
   "reference.i2i.title": "Source image (i2i)",
   "reference.i2i.pick": "Choose a source image",
@@ -345,6 +359,17 @@ const ja: Record<keyof typeof en, string> = {
   "referenceLibrary.resolveError":
     "ライブラリを読めなかったので、ライブラリ無しで生成します。",
   "referenceLibrary.dropped": "ライブラリ参照 {count} 件を除きました。",
+  "referenceLibrary.atMax": "この生成で使える参照画像の上限に達しています。",
+
+  "generate.anlasConfirm.title": "Anlas を消費します",
+  "generate.anlasConfirm.description":
+    "参照画像の分として、画像そのものの費用に約 {count} Anlas が上乗せされます。続けますか。",
+  "generate.anlasConfirm.pending": "この生成の費用を計算しています…",
+  "generate.anlasConfirm.encoding":
+    "バイブのエンコード: {count} Anlas（初回のみ。以降は無料で使い回せます）",
+  "generate.anlasConfirm.vibe": "無料枠 4 枚を超えるバイブ: 合計 {count} Anlas",
+  "generate.anlasConfirm.precise": "精密参照: 合計 {count} Anlas",
+  "generate.anlasConfirm.confirm": "生成する",
 
   "reference.i2i.title": "元画像 (i2i)",
   "reference.i2i.pick": "元画像を選ぶ",

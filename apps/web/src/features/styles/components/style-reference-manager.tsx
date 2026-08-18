@@ -1,5 +1,6 @@
 "use client";
 
+import { MAX_CHARACTER_REFERENCES } from "@nai-desktop-studio/novelai/constants";
 import {
   Select,
   SelectContent,
@@ -14,11 +15,7 @@ import { LabeledSlider } from "@/components/labeled-slider";
 import { useT } from "@/i18n/provider";
 import type { MessageKey } from "@/i18n/messages";
 
-import {
-  MAX_STYLE_REFERENCES,
-  STYLE_REFERENCE_TYPES,
-  type StyleReferenceType,
-} from "../types/style";
+import { STYLE_REFERENCE_TYPES, type StyleReferenceType } from "../types/style";
 import {
   AddImageButton,
   imageSrc,
@@ -128,7 +125,7 @@ export function StyleReferenceManager({
   blocked,
 }: Props) {
   const t = useT();
-  const atMax = references.length >= MAX_STYLE_REFERENCES;
+  const atMax = references.length >= MAX_CHARACTER_REFERENCES;
 
   async function handleAdd(file: File) {
     const read = await readPendingImage(file);
@@ -171,7 +168,7 @@ export function StyleReferenceManager({
       <div className="space-y-1">
         <h4 className="text-sm font-medium">{t("styles.references.title")}</h4>
         <p className="text-muted-foreground text-xs leading-tight">
-          {t("styles.references.hint", { max: MAX_STYLE_REFERENCES })}
+          {t("styles.references.hint", { max: MAX_CHARACTER_REFERENCES })}
         </p>
         {blocked && (
           <p className="text-xs leading-tight text-amber-600">

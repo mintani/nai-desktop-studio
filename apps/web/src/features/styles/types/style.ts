@@ -39,9 +39,6 @@ export type StyleGenerationParams = {
   noiseSchedule: StyleNoiseSchedule | null;
 };
 
-export const MAX_STYLE_VIBES = 16;
-export const MAX_STYLE_REFERENCES = 6;
-
 export const STYLE_REFERENCE_TYPES = [
   "character",
   "style",

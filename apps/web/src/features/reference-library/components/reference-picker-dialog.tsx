@@ -38,6 +38,11 @@ type Props = {
   kind: ReferenceKind;
   selectedIds: string[];
   onSelectedChange: (ids: string[]) => void;
+  /**
+   * How many more images this run has room for. A request is capped whatever
+   * the images came from, so what the panel already holds counts against this.
+   */
+  remaining: number;
 };
 
 /**
@@ -54,6 +59,7 @@ export function ReferencePickerDialog({
   kind,
   selectedIds,
   onSelectedChange,
+  remaining,
 }: Props) {
   const t = useT();
   const { references, save, remove } = useReferences();
@@ -129,11 +135,17 @@ export function ReferencePickerDialog({
   }
 
   function toggle(id: string) {
-    onSelectedChange(
-      selectedIds.includes(id)
-        ? selectedIds.filter((item) => item !== id)
-        : [...selectedIds, id]
-    );
+    if (selectedIds.includes(id)) {
+      onSelectedChange(selectedIds.filter((item) => item !== id));
+      setEditingId(id);
+      return;
+    }
+    // Deselecting is always allowed; only adding can run past the limit.
+    if (remaining <= 0) {
+      toast.error(t("referenceLibrary.atMax"));
+      return;
+    }
+    onSelectedChange([...selectedIds, id]);
     setEditingId(id);
   }
 

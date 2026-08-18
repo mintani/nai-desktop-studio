@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  MAX_CHARACTER_REFERENCES,
+  MAX_VIBE_REFERENCES,
+} from "@nai-desktop-studio/novelai/constants";
 import { Button } from "@nai-desktop-studio/ui/components/button";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import {
@@ -22,11 +26,10 @@ import { useT } from "@/i18n/provider";
 import type { MessageKey } from "@/i18n/messages";
 
 import { readImageFile } from "../lib/image-file";
+import { pickedLibraryReferences } from "../lib/library-references";
 import { supportsReferences } from "../lib/build-request";
 import type { FormState } from "../types/generate";
 import {
-  MAX_REFERENCES,
-  MAX_VIBES,
   REFERENCE_TYPE_LABEL_KEYS,
   REFERENCE_TYPES,
   type AdhocReference,
@@ -311,14 +314,19 @@ type Props = {
 export function ReferenceSettings({ form, update }: Props) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const { references } = useReferences();
-  // Only the ones that still exist and match the current mode: a reference
-  // saved as a vibe cannot go out in a precise-reference run.
-  const picked = form.libraryReferenceIds.flatMap((id) => {
-    const found = references.find((entry) => entry.id === id);
-    return found && found.kind === form.referenceMode ? [found] : [];
-  });
+  const picked = pickedLibraryReferences(form, references);
   const t = useT();
   const referenceAvailable = supportsReferences(form.model);
+  // One request carries one set of reference images, so what was dropped in
+  // here and what was chosen from the library fill the same allowance.
+  const inUse =
+    (form.referenceMode === "vibe" ? form.vibes : form.references).length +
+    picked.length;
+  const limit =
+    form.referenceMode === "vibe"
+      ? MAX_VIBE_REFERENCES
+      : MAX_CHARACTER_REFERENCES;
+  const atMax = inUse >= limit;
 
   async function handlePickI2i(file: File) {
     const read = await readImageFile(file);
@@ -473,12 +481,8 @@ export function ReferenceSettings({ form, update }: Props) {
               </ul>
             )}
             <AddImageButton
-              label={
-                form.vibes.length >= MAX_VIBES
-                  ? t("reference.atMax")
-                  : t("reference.vibe.add")
-              }
-              disabled={form.vibes.length >= MAX_VIBES}
+              label={atMax ? t("reference.atMax") : t("reference.vibe.add")}
+              disabled={atMax}
               onPick={handleAddVibe}
             />
           </div>
@@ -505,14 +509,8 @@ export function ReferenceSettings({ form, update }: Props) {
               </ul>
             )}
             <AddImageButton
-              label={
-                form.references.length >= MAX_REFERENCES
-                  ? t("reference.atMax")
-                  : t("reference.precise.add")
-              }
-              disabled={
-                !referenceAvailable || form.references.length >= MAX_REFERENCES
-              }
+              label={atMax ? t("reference.atMax") : t("reference.precise.add")}
+              disabled={!referenceAvailable || atMax}
               onPick={handleAddReference}
             />
           </div>
@@ -583,6 +581,7 @@ export function ReferenceSettings({ form, update }: Props) {
         open={libraryOpen}
         onOpenChange={setLibraryOpen}
         kind={form.referenceMode}
+        remaining={Math.max(limit - inUse, 0)}
         selectedIds={form.libraryReferenceIds}
         onSelectedChange={(libraryReferenceIds) =>
           update({ libraryReferenceIds })

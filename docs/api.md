@@ -114,9 +114,9 @@ API では返さない。web が使っておらず、履歴の全件に付ける
 
 ## コレクション
 
-キャラクター・シチュエーション・スタイル・参照ライブラリの 4 種をレコード配列として保存する。
+キャラクター・シチュエーション・スタイルの 3 種をレコード配列として保存する。
 保存先は設定と同じ configDir を辿り、`<configDir>/collections/<name>.json` に書く。
-`<name>` は `characters` / `situations` / `styles` / `references` の 4 つだけで、それ以外は 404。
+`<name>` は `characters` / `situations` / `styles` の 3 つだけで、それ以外は 404。
 
 | メソッド | パス | 説明 |
 | --- | --- | --- |
@@ -139,15 +139,41 @@ API では返さない。web が使っておらず、履歴の全件に付ける
 ## 参照ライブラリ
 
 バイブ転送・精密参照に使う画像を保存しておき、生成のたびに貼り直さずに使う。
-レコード自体はコレクション `references`、画像はアセットに入るので、CRUD は
-それぞれの汎用エンドポイントを使う。ここにあるのは**エンコード結果の扱い**だけ。
+
+**1 件が 1 ディレクトリ。** 画像・設定・エンコード結果が同じ場所に入る。
+
+```
+<configDir>/references/<id>/
+├── reference.json   設定
+├── image.png        元画像（png / webp / jpg。content-type から決まる）
+└── encoded.txt      エンコード結果（バイブが 1 度エンコードされた後だけ）
+```
 
 | メソッド | パス | 説明 |
 | --- | --- | --- |
+| `GET` | `/references` | `{ items: Reference[] }`（`updatedAt` の新しい順） |
+| `POST` | `/references` | body に設定 + `{ imageBase64, contentType }` → 作成した `Reference`（201） |
+| `PUT` | `/references/:id` | 設定の更新。画像は変えられない。更新後の `Reference` |
+| `DELETE` | `/references/:id` | ディレクトリごと消す。`{ ok: true }`。無ければ 404 |
+| `GET` | `/references/:id/image` | 画像バイナリ。`Cache-Control: immutable` |
 | `POST` | `/references/resolve` | body `{ ids }` → `{ items: ResolvedReference[] }` |
 | `DELETE` | `/references/:id/encoded` | 保存済みエンコードを捨てる。`{ ok: true }` |
 
 ```ts
+type Reference = {
+  id: string;
+  name: string;
+  groupName: string | null;
+  kind: "vibe" | "reference";
+  strength: number;
+  infoExtracted: number;   // バイブのみ
+  referenceType: string;   // 精密参照のみ
+  fidelity: number;        // 精密参照のみ
+  encodedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type ResolvedReference = {
   id: string;
   kind: "vibe" | "reference";
@@ -159,17 +185,19 @@ type ResolvedReference = {
 };
 ```
 
-**バイブのエンコードは 1 回だけ。** `/resolve` は、エンコード結果が
-`<configDir>/encoded-vibes/<id>.txt` に無いバイブだけをその場でエンコードして保存する。
-2 回目以降はファイルを読むだけなので Anlas を消費しない。同じ画像・同じ
-`information_extracted`・同じモデルなら結果は毎回同じなので、取っておけば足りる。
+画像のパスはレコードに持たない。常に `/references/<id>/image` なので、消えた画像を指したまま
+残る文字列が存在しない。作成も削除も 1 リクエストで、途中で失敗しても片方だけが残ることがない。
+
+**バイブのエンコードは 1 回だけ。** `/resolve` は、`encoded.txt` を持たないバイブだけを
+その場でエンコードして保存する。2 回目以降はファイルを読むだけなので Anlas を消費しない。
+同じ画像・同じ `information_extracted`・同じモデルなら結果は毎回同じなので、取っておけば足りる。
 
 エンコードのモデルは `nai-diffusion-4-5-full` に固定する。エンコード結果はモデル固有で、
 生成時のモデルに合わせると切り替えるたびにキャッシュが無効になり、保存する意味が消える。
 
-`information_extracted` を変えるとキャッシュは捨てられる（web 側が
-`DELETE /references/:id/encoded` を呼ぶ）。中身が変わったのに古い結果を送ると、
-設定と食い違ったものが出る。
+`infoExtracted` か `kind` を変えると、`PUT` が保存済みのエンコードを捨てる。中身が変わったのに
+古い結果を送ると設定と食い違ったものが出る。捨てるのはサーバ側の仕事で、ファイルを持っているのが
+サーバだから。
 
 解決できなかった id は落として返す。壊れた 1 件で生成 1 回分を失わないため。
 

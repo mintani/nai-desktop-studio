@@ -19,14 +19,15 @@ export const REFERENCE_KIND_LABEL_KEYS: Record<ReferenceKind, string> = {
  * same `infoExtracted` always encodes to the same thing. The server keeps that
  * result on disk, so an entry here is paid for once and free every time after.
  * `encodedAt` is how the panel knows which is which.
+ *
+ * The image is not named here. It is always `/references/<id>/image`, so there
+ * is no stored path that can point at something that has been deleted.
  */
 export type ReferenceEntry = {
   id: string;
   name: string;
   groupName: string | null;
   kind: ReferenceKind;
-  /** Asset path of the source image. */
-  imagePath: string;
   /** When the vibe encode was cached. Null means the next use costs 2 Anlas. */
   encodedAt: string | null;
   strength: number;
@@ -47,8 +48,7 @@ export const DEFAULT_FIDELITY = 1;
 
 export function createEmptyReference(
   kind: ReferenceKind,
-  name: string,
-  imagePath: string
+  name: string
 ): ReferenceEntry {
   const now = new Date().toISOString();
   return {
@@ -56,7 +56,6 @@ export function createEmptyReference(
     name,
     groupName: null,
     kind,
-    imagePath,
     encodedAt: null,
     strength:
       kind === "vibe" ? DEFAULT_VIBE_STRENGTH : DEFAULT_REFERENCE_STRENGTH,
@@ -83,7 +82,7 @@ export function normalizeReference(
   input: unknown,
   fallbackName: string
 ): ReferenceEntry {
-  const base = createEmptyReference("vibe", fallbackName, "");
+  const base = createEmptyReference("vibe", fallbackName);
   if (!input || typeof input !== "object") return base;
 
   const kind =
@@ -104,7 +103,6 @@ export function normalizeReference(
     groupName:
       groupName && groupName.trim().length > 0 ? groupName.trim() : null,
     kind,
-    imagePath: readString(input, "imagePath") ?? "",
     encodedAt: encodedAt && encodedAt.length > 0 ? encodedAt : null,
     strength: readNumber(
       input,

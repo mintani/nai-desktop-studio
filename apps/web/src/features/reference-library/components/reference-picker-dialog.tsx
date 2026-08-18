@@ -20,10 +20,10 @@ import { LabeledSlider } from "@/components/labeled-slider";
 import { readImageFile } from "@/features/generate/lib/image-file";
 import { REFERENCE_TYPES } from "@/features/generate/types/reference";
 import type { ReferenceType } from "@/features/generate/types/reference";
-import { assetUrl, uploadAsset } from "@/features/library/collections";
 import { useT } from "@/i18n/provider";
 
 import { useReferences } from "../hooks/queries";
+import { referenceImageUrl } from "../lib/api";
 import {
   createEmptyReference,
   searchableReferenceText,
@@ -62,7 +62,7 @@ export function ReferencePickerDialog({
   remaining,
 }: Props) {
   const t = useT();
-  const { references, save, remove } = useReferences();
+  const { references, create, save, remove } = useReferences();
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -116,16 +116,25 @@ export function ReferencePickerDialog({
     URL.revokeObjectURL(read.previewUrl);
     setBusy(true);
     try {
-      const uploaded = await uploadAsset(
-        read.imageBase64,
-        file.type || "image/png"
-      );
-      const entry = createEmptyReference(
+      const draft = createEmptyReference(
         kind,
-        file.name.replace(/\.[^.]+$/, "") || t("referenceLibrary.newName"),
-        uploaded.path
+        file.name.replace(/\.[^.]+$/, "") || t("referenceLibrary.newName")
       );
-      await save.mutateAsync(entry);
+      // One request: the server writes the image and the settings together, so
+      // a failure here leaves nothing half-made to clean up.
+      const entry = await create.mutateAsync({
+        metadata: {
+          name: draft.name,
+          groupName: draft.groupName,
+          kind: draft.kind,
+          strength: draft.strength,
+          infoExtracted: draft.infoExtracted,
+          referenceType: draft.referenceType,
+          fidelity: draft.fidelity,
+        },
+        imageBase64: read.imageBase64,
+        contentType: file.type || "image/png",
+      });
       setEditingId(entry.id);
     } catch {
       toast.error(t("referenceLibrary.saveError"));
@@ -245,7 +254,7 @@ export function ReferencePickerDialog({
                           >
                             <span className="bg-muted flex aspect-square w-full items-center justify-center overflow-hidden">
                               <img
-                                src={assetUrl(entry.imagePath)}
+                                src={referenceImageUrl(entry.id)}
                                 alt=""
                                 draggable={false}
                                 loading="lazy"

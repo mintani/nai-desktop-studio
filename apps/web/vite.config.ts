@@ -17,7 +17,12 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
     tailwindcss(),
-    tanstackStart({ spa: { enabled: true } }),
+    // The shell is written as index.html rather than the default _shell.html:
+    // it is the only document the app has, and every static host — Tauri's
+    // WebView included — looks for that name.
+    tanstackStart({
+      spa: { enabled: true, prerender: { outputPath: "/index" } },
+    }),
     // React's plugin has to come after Start's.
     viteReact(),
     // Carried over from the Next config, which had reactCompiler on. It

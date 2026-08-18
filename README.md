@@ -4,8 +4,8 @@ NovelAI の画像生成をローカルで完結させるデスクトップ向け
 のフォルダに保存され、履歴・ライトボックス・参照画像（i2i / バイブ転送 / 精密参照）を
 1 画面から扱える。
 
-現在は localhost で動く Web アプリとして開発している。デスクトップ化（Tauri での
-パッケージング）は後段で行う予定。
+ブラウザで開く Web アプリとしても、Tauri で固めたデスクトップアプリとしても動く。
+後者の作り方は[デスクトップ版](#デスクトップ版)。
 
 > NovelAI とは無関係の非公式なクライアントです。動かすには自分の NovelAI
 > アカウントと API トークンが必要で、生成にかかる Anlas はその契約で消費されます。
@@ -32,7 +32,8 @@ NovelAI の画像生成をローカルで完結させるデスクトップ向け
 nai-desktop-studio/
 ├── apps/
 │   ├── web/         # 画面 (Vite + TanStack Start / SPA)
-│   └── server/      # ローカル API (Elysia / Bun)
+│   ├── server/      # ローカル API (Elysia / Bun)
+│   └── desktop/     # Tauri のシェル。web と server を 1 つのアプリにまとめる
 ├── packages/
 │   ├── novelai/     # NovelAI API のスキーマ・ペイロード組み立て・クライアント
 │   ├── ui/          # shadcn + base-ui のプリミティブ
@@ -70,6 +71,7 @@ Get Persistent API Token で取得したトークンを貼ると、疎通確認�
 - `bun run build` — 本番ビルド
 - `bun run check-types` — 型チェック
 - `bun run check` — oxlint + oxfmt
+- `bun run --cwd apps/desktop package` — デスクトップ版のインストーラを作る
 
 ## 開発の進め方
 
@@ -95,21 +97,54 @@ main            リリース相当。dev からのみ入る
 
 以前は事前生成した 46MB の JSON も含めていたが、CSV から作れる中間生成物なので追跡をやめた。
 
-## デスクトップ化（予定）
+## デスクトップ版
 
-`apps/server` を Tauri の sidecar として同梱し、`apps/web` の静的ビルドを WebView から
-読む構成を想定している。web は SPA 構成（`tanstackStart({ spa: { enabled: true } })`）で
-ビルドすると `dist/client/` に静的ファイルが出るので、そのまま置ける。
-実行環境（GUI）が用意でき次第、この手順を追加する。
+`apps/desktop` が Tauri のシェル。WebView が `apps/web` の静的ビルドを読み、ローカル API は
+sidecar として同じアプリの中で起動して、アプリを閉じると一緒に落ちる。
 
-ただし **`bun build --compile` の単一ファイルにはできない。** 履歴のサムネイル生成に
-`sharp` を使っており、ネイティブアドオン（`.node`）はバイナリに埋め込まれないため、
-出来上がった実行ファイルは起動時に落ちる（検証済み）。sidecar は実行ファイルと
-`node_modules/@img/` を並べて配る形になる。
+```bash
+bun run --cwd apps/desktop payload       # 同梱するものを組み立てる
+bun run --cwd apps/desktop tauri build   # インストーラを作る
+```
 
-サムネイルが無くても画像自体は表示できる（`/images/:id/thumb` は原寸へフォールバックする）
-ので、単一ファイルをどうしても優先したい場合は sharp を外す判断もありうる。
-そのときは履歴が原寸を読み直すので、枚数が増えると重くなる。
+Rust ツールチェインが要る（[Tauri の前提条件](https://v2.tauri.app/start/prerequisites/)）。
+成果物は `apps/desktop/src-tauri/target/release/bundle/` に出る。配布する Windows と
+Apple Silicon の macOS 分は `.github/workflows/desktop.yml` が CI で作る。
+
+### sidecar が Bun ランタイムそのものである理由
+
+**`bun build --compile` の単一ファイルにはできない。** サムネイル生成に使う `sharp` は
+`createRequire(import.meta.url)` でネイティブアドオンを読むが、コンパイル済みバイナリの中では
+それが Bun の仮想 FS を指すので解決に失敗し、起動時に落ちる。`--external sharp` にしても
+同じ仮想 FS から探すので変わらない（どちらも実測）。実ファイルの隣に実物の `node_modules` を
+置くのが、これが解決する唯一の形になる。
+
+サイズの損はしていない。コンパイル済みバイナリの約 100MB は埋め込まれた Bun ランタイム
+そのものなので、同じものを別の形で運んでいるだけ。
+
+同梱するもの（Linux x64 で実測。他の OS でも内訳は変わらない）:
+
+| 中身 | サイズ |
+| --- | --- |
+| Bun ランタイム（sidecar） | 98 MB |
+| server のバンドル + sharp + タグ CSV | 26 MB |
+| web の静的ビルド | 1.2 MB |
+
+### ポート
+
+起動のたびに OS から空きポートをもらう。3000 固定だと開発中のサーバとぶつかって
+アプリが立ち上がらなくなるため。決まった値は WebView に `window.__NAI_SERVER_URL__` として
+渡す。ブラウザで開いたときは誰も設定しないので、ビルド時の `VITE_SERVER_URL` がそのまま使われる
+（`packages/env/src/web.ts`）。web 側が Tauri を知っているのはこの 1 か所だけで、
+`@tauri-apps/api` には依存していない。
+
+### 現状の制限
+
+- **配布は Windows と Apple Silicon の macOS だけ。** sidecar はビルドしたマシンの Bun を
+  そのまま同梱する作りなので、対応を増やすときは runner を足す（Intel Mac なら Intel の
+  runner、Linux なら ubuntu + webkit2gtk などの依存）
+- **署名していない。** macOS は Gatekeeper、Windows は SmartScreen の警告が出る
+- 設定の保存先はどの OS でも `~/.config/nai-desktop-studio`
 
 ## ライセンス
 

@@ -10,6 +10,7 @@ import type {
   AdhocReference,
   AdhocVibe,
   I2iSource,
+  InpaintSource,
   ReferenceMode,
 } from "./reference";
 
@@ -48,6 +49,8 @@ export type FormState = {
   varietyBoost: boolean;
   characters: CharacterData[];
   i2i: I2iSource | null;
+  /** Set instead of i2i: NovelAI cannot run both in one request. */
+  inpaint: InpaintSource | null;
   referenceMode: ReferenceMode;
   vibes: AdhocVibe[];
   references: AdhocReference[];
@@ -90,6 +93,11 @@ export type GenerateRequestBody = {
     image: string;
     strength: number;
     noise: number;
+  };
+  inpaint?: {
+    image: string;
+    mask: string;
+    strength: number;
   };
   controlnet?: {
     images: {

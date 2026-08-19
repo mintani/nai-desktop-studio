@@ -27,6 +27,8 @@ import {
   type GenerationJob,
   type SelectedCharacter,
 } from "../lib/compose";
+import { bytesToBase64 } from "@/lib/base64";
+
 import { readImageFile } from "../lib/image-file";
 import { countMetadata, readPngMetadata } from "../lib/png-metadata";
 import { loadStyleReferenceImages } from "../lib/style-references";
@@ -48,6 +50,8 @@ import type { TemplateSelection } from "../types/template";
 import { AnlasConfirmDialog } from "./anlas-confirm-dialog";
 import { ImageDropDialog } from "./image-drop-dialog";
 import type { DropAction, DroppedImage } from "./image-drop-dialog";
+import { InpaintDialog } from "./inpaint-dialog";
+import type { InpaintTarget } from "./inpaint-dialog";
 import { GeneratePanel } from "./generate-panel";
 import { HistoryFooter } from "./history-footer";
 import { ImageGrid } from "./image-grid";
@@ -161,6 +165,43 @@ export function GenerateWorkspace() {
   function closeDrop(keepPreview: boolean) {
     if (dropped && !keepPreview) URL.revokeObjectURL(dropped.previewUrl);
     setDropped(null);
+  }
+
+  // The image whose mask is being painted. Held apart from the form: a mask
+  // only becomes part of the run once it is saved.
+  const [inpaintTarget, setInpaintTarget] = useState<InpaintTarget | null>(
+    null
+  );
+
+  async function startInpaint(image: GeneratedImage) {
+    try {
+      const response = await fetch(resolveImageSrc(image));
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      setInpaintTarget({
+        previewUrl: resolveImageSrc(image),
+        imageBase64: bytesToBase64(bytes),
+        maskBase64: null,
+      });
+    } catch {
+      toast.error(t("inpaint.errorLoad"));
+    }
+  }
+
+  function saveMask(maskBase64: string) {
+    if (!inpaintTarget) return;
+    // A mask replaces i2i rather than joining it: NovelAI runs an infill on a
+    // different model and cannot take both.
+    if (form.i2i) URL.revokeObjectURL(form.i2i.previewUrl);
+    update({
+      i2i: null,
+      inpaint: {
+        previewUrl: inpaintTarget.previewUrl,
+        imageBase64: inpaintTarget.imageBase64,
+        maskBase64,
+        strength: form.inpaint?.strength ?? 0.7,
+      },
+    });
+    setInpaintTarget(null);
   }
 
   function applyDrop(action: DropAction) {
@@ -407,6 +448,7 @@ export function GenerateWorkspace() {
     onCopySeed: (image: GeneratedImage) =>
       void copyWithToast(String(image.seed), "image.copiedSeed"),
     onDelete: handleDelete,
+    onInpaint: (image: GeneratedImage) => void startInpaint(image),
   };
 
   return (
@@ -475,6 +517,14 @@ export function GenerateWorkspace() {
               anlasText={anlasText}
               onGenerate={() => void handleGenerate()}
               onCancel={engine.cancel}
+              onEditMask={() => {
+                if (!form.inpaint) return;
+                setInpaintTarget({
+                  previewUrl: form.inpaint.previewUrl,
+                  imageBase64: form.inpaint.imageBase64,
+                  maskBase64: form.inpaint.maskBase64,
+                });
+              }}
             />
           </aside>
         )}
@@ -589,6 +639,12 @@ export function GenerateWorkspace() {
           </span>
         </div>
       )}
+
+      <InpaintDialog
+        target={inpaintTarget}
+        onSave={saveMask}
+        onCancel={() => setInpaintTarget(null)}
+      />
 
       <ImageDropDialog
         image={dropped}

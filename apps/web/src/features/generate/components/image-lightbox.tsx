@@ -18,6 +18,7 @@ import {
   Download,
   Hash,
   Info,
+  Paintbrush,
   Trash2,
   X,
 } from "lucide-react";
@@ -35,6 +36,7 @@ type Props = {
   onCopyPrompt: (image: GeneratedImage) => void;
   onCopySeed: (image: GeneratedImage) => void;
   onDelete: (image: GeneratedImage) => void;
+  onInpaint: (image: GeneratedImage) => void;
 };
 
 // Controls over the overlay are unified as semi-transparent white buttons (a
@@ -52,6 +54,7 @@ export function ImageLightbox({
   onCopyPrompt,
   onCopySeed,
   onDelete,
+  onInpaint,
 }: Props) {
   const { t, locale } = useI18n();
   const index = images.findIndex((img) => img.id === currentId);
@@ -433,6 +436,18 @@ export function ImageLightbox({
         >
           <Info className="size-5" aria-hidden />
           <span className="sr-only">{t("viewer.action.info")}</span>
+        </button>
+        <button
+          type="button"
+          className={CTRL}
+          title={t("inpaint.start")}
+          onClick={(e) => {
+            e.stopPropagation();
+            onInpaint(current);
+          }}
+        >
+          <Paintbrush className="size-5" aria-hidden />
+          <span className="sr-only">{t("inpaint.start")}</span>
         </button>
         <button
           type="button"

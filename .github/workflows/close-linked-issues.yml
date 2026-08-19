@@ -5,13 +5,15 @@ name: Close linked issues
 # nothing else happens — PR #4 and #5 both said Closes and left their issues
 # open. This does the closing.
 #
-# pull_request_target rather than pull_request: the workflow then runs from
-# dev's copy of this file with a token that may write, instead of from the
-# branch being merged. Nothing from the pull request is checked out or run —
-# only its body is read, and it is passed through the environment rather than
-# into the shell, because a body can contain anything.
+# pull_request, not pull_request_target: the latter only starts when the file
+# is on the default branch, and this repository's default branch is main, which
+# nothing reaches until a release. It never ran once.
+#
+# Nothing from the pull request is checked out or run. Only its body is read,
+# and it goes through the environment rather than into the shell, because a
+# body can contain anything.
 on:
-  pull_request_target:
+  pull_request:
     types: [closed]
     branches: [dev]
 

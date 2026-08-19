@@ -3,7 +3,7 @@
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { MessageKey } from "@/i18n/messages";
 import { useT } from "@/i18n/provider";
@@ -27,6 +27,8 @@ import {
   type GenerationJob,
   type SelectedCharacter,
 } from "../lib/compose";
+import { readImageFile } from "../lib/image-file";
+import { countMetadata, readPngMetadata } from "../lib/png-metadata";
 import { loadStyleReferenceImages } from "../lib/style-references";
 import {
   copyToClipboard,
@@ -44,6 +46,8 @@ import type { GeneratedImage, GenerationSlot } from "../types/image";
 import { EMPTY_TEMPLATE_SELECTION } from "../types/template";
 import type { TemplateSelection } from "../types/template";
 import { AnlasConfirmDialog } from "./anlas-confirm-dialog";
+import { ImageDropDialog } from "./image-drop-dialog";
+import type { DropAction, DroppedImage } from "./image-drop-dialog";
 import { GeneratePanel } from "./generate-panel";
 import { HistoryFooter } from "./history-footer";
 import { ImageGrid } from "./image-grid";
@@ -126,6 +130,95 @@ export function GenerateWorkspace() {
   // confirm so the run is exactly what the figures were quoted for.
   const [pendingJobs, setPendingJobs] = useState<GenerationJob[] | null>(null);
   const spendsOnReferences = useReferenceSpend(form);
+
+  // A file dropped on the window, waiting to be told what it is for.
+  const [dropped, setDropped] = useState<DroppedImage | null>(null);
+  const [dragging, setDragging] = useState(false);
+  // dragenter/dragleave fire for every child the pointer crosses, so a plain
+  // boolean flickers. Count the crossings and only clear at zero.
+  const dragDepth = useRef(0);
+
+  async function handleDroppedFile(file: File) {
+    const read = await readImageFile(file);
+    if (!read.ok) {
+      toast.error(
+        read.reason === "not-image"
+          ? t("reference.error.notImage")
+          : t("reference.error.tooLarge")
+      );
+      return;
+    }
+    const metadata = readPngMetadata(read.bytes);
+    setDropped({
+      previewUrl: read.previewUrl,
+      imageBase64: read.imageBase64,
+      fileName: file.name,
+      metadata,
+      metadataCount: countMetadata(metadata),
+    });
+  }
+
+  function closeDrop(keepPreview: boolean) {
+    if (dropped && !keepPreview) URL.revokeObjectURL(dropped.previewUrl);
+    setDropped(null);
+  }
+
+  function applyDrop(action: DropAction) {
+    if (!dropped) return;
+    const { previewUrl, imageBase64, metadata, metadataCount } = dropped;
+
+    if (action === "prompt") {
+      update(metadata);
+      toast.success(t("drop.loaded", { count: metadataCount }));
+      closeDrop(false);
+      return;
+    }
+
+    if (action === "i2i") {
+      if (form.i2i) URL.revokeObjectURL(form.i2i.previewUrl);
+      update({
+        i2i: { previewUrl, imageBase64, strength: 0.7, noise: 0 },
+      });
+      closeDrop(true);
+      return;
+    }
+
+    if (action === "vibe") {
+      update({
+        referenceMode: "vibe",
+        vibes: [
+          ...form.vibes,
+          {
+            id: `ref-${crypto.randomUUID()}`,
+            previewUrl,
+            imageBase64,
+            strength: 0.6,
+            infoExtracted: 0.7,
+          },
+        ],
+      });
+      toast.warning(t("reference.warn.vibeEncode"));
+      closeDrop(true);
+      return;
+    }
+
+    update({
+      referenceMode: "reference",
+      references: [
+        ...form.references,
+        {
+          id: `ref-${crypto.randomUUID()}`,
+          previewUrl,
+          imageBase64,
+          referenceType: "character",
+          strength: 1,
+          fidelity: 1,
+        },
+      ],
+    });
+    toast.warning(t("reference.warn.precise"));
+    closeDrop(true);
+  }
 
   const update = useCallback((patch: Partial<FormState>) => {
     setForm((current) => {
@@ -319,7 +412,29 @@ export function GenerateWorkspace() {
   return (
     // The header spans the full width above both columns, so the panel and the
     // viewer start at the same y and the panel toggle never moves.
-    <div className="grid h-svh grid-rows-[auto_minmax(0,1fr)] overflow-hidden">
+    <div
+      className="grid h-svh grid-rows-[auto_minmax(0,1fr)] overflow-hidden"
+      onDragEnter={(event) => {
+        if (!event.dataTransfer.types.includes("Files")) return;
+        dragDepth.current += 1;
+        setDragging(true);
+      }}
+      onDragOver={(event) => {
+        if (event.dataTransfer.types.includes("Files")) event.preventDefault();
+      }}
+      onDragLeave={() => {
+        dragDepth.current = Math.max(dragDepth.current - 1, 0);
+        if (dragDepth.current === 0) setDragging(false);
+      }}
+      onDrop={(event) => {
+        const file = event.dataTransfer.files[0];
+        if (!file) return;
+        event.preventDefault();
+        dragDepth.current = 0;
+        setDragging(false);
+        void handleDroppedFile(file);
+      }}
+    >
       <WorkspaceHeader
         panelOpen={panelOpen}
         onTogglePanel={togglePanel}
@@ -464,6 +579,23 @@ export function GenerateWorkspace() {
       />
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+
+      {/* Only while a file is over the window. The whole surface takes a drop,
+          so the mark is the surface, not a target to aim at. */}
+      {dragging && (
+        <div className="border-primary bg-background/70 pointer-events-none fixed inset-0 z-50 m-3 flex items-center justify-center rounded-lg border-2 border-dashed backdrop-blur-[2px]">
+          <span className="bg-card rounded-md border px-4 py-2 text-sm font-medium shadow-sm">
+            {t("drop.hint")}
+          </span>
+        </div>
+      )}
+
+      <ImageDropDialog
+        image={dropped}
+        referenceAvailable={supportsReferences(form.model)}
+        onChoose={applyDrop}
+        onCancel={() => closeDrop(false)}
+      />
 
       <AnlasConfirmDialog
         open={pendingJobs !== null}

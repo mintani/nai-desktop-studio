@@ -45,6 +45,10 @@ const en = {
   "settings.output.errorEmpty": "Enter an output folder",
   "settings.output.saved": "Output folder updated",
   "settings.output.errorSave": "Could not save",
+
+  "settings.sections.label": "Sections open by default",
+  "settings.sections.help":
+    "Which parts of the generate panel are already expanded when the app opens.",
 } as const;
 
 const ja: Record<keyof typeof en, string> = {
@@ -94,6 +98,10 @@ const ja: Record<keyof typeof en, string> = {
   "settings.output.errorEmpty": "保存先を入力してください",
   "settings.output.saved": "保存先を変更しました",
   "settings.output.errorSave": "保存に失敗しました",
+
+  "settings.sections.label": "最初から開くセクション",
+  "settings.sections.help":
+    "生成パネルのどの部分を、起動した時点で開いておくかを選びます。",
 };
 
 export const settings = { en, ja };

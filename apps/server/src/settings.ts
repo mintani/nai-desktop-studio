@@ -19,6 +19,12 @@ const storedSettingsSchema = z.object({
   defaultModel: z.string().min(1).optional(),
   plan: z.enum(["opus", "other"]).optional(),
   generationMode: z.enum(["queue", "alternate"]).optional(),
+  /**
+   * Which panel sections start expanded. Held as opaque strings: which
+   * sections exist is the web app's business, and a second list of names here
+   * would be one more place to keep in step.
+   */
+  openSections: z.array(z.string().min(1).max(40)).max(20).optional(),
 });
 type StoredSettings = z.infer<typeof storedSettingsSchema>;
 
@@ -37,6 +43,7 @@ type ResolvedSettings = {
   defaultModel: ImageModel;
   plan: Plan;
   generationMode: GenerationMode;
+  openSections: string[];
 };
 
 /** Public view returned to the client, without the API key. */
@@ -47,6 +54,7 @@ export type SettingsView = {
   defaultModel: ImageModel;
   plan: Plan;
   generationMode: GenerationMode;
+  openSections: string[];
 };
 
 function resolveDefaultModel(value?: string): ImageModel {
@@ -97,6 +105,9 @@ export async function getSettings(): Promise<ResolvedSettings> {
     // Default to "queue": the free path on Opus, so it never surprises the
     // user with an Anlas charge.
     generationMode: s.generationMode ?? "queue",
+    // The scene list is what a batch run is built from, so it is the one
+    // section worth opening before anything is asked for.
+    openSections: s.openSections ?? ["template"],
   };
 }
 
@@ -106,6 +117,7 @@ export type SettingsPatch = {
   defaultModel?: ImageModel;
   plan?: Plan;
   generationMode?: GenerationMode;
+  openSections?: string[];
 };
 
 export async function updateSettings(
@@ -120,6 +132,7 @@ export async function updateSettings(
   if (patch.generationMode !== undefined) {
     next.generationMode = patch.generationMode;
   }
+  if (patch.openSections !== undefined) next.openSections = patch.openSections;
   await persist(next);
   return getSettings();
 }
@@ -153,8 +166,10 @@ export function maskApiKey(key: string): string {
 
 /** Build the public view without exposing the raw API key. */
 export async function publicSettings(): Promise<SettingsView> {
-  const [{ outputDir, defaultModel, plan, generationMode }, apiKey] =
-    await Promise.all([getSettings(), getApiKey()]);
+  const [
+    { outputDir, defaultModel, plan, generationMode, openSections },
+    apiKey,
+  ] = await Promise.all([getSettings(), getApiKey()]);
   return {
     hasApiKey: apiKey !== null,
     apiKeyPreview: apiKey ? maskApiKey(apiKey) : null,
@@ -162,6 +177,7 @@ export async function publicSettings(): Promise<SettingsView> {
     defaultModel,
     plan,
     generationMode,
+    openSections,
   };
 }
 
@@ -186,6 +202,12 @@ const putBodySchema = z.object({
   defaultModel: z.enum(IMAGE_MODELS).optional(),
   plan: z.enum(["opus", "other"]).optional(),
   generationMode: z.enum(["queue", "alternate"]).optional(),
+  /**
+   * Which panel sections start expanded. Held as opaque strings: which
+   * sections exist is the web app's business, and a second list of names here
+   * would be one more place to keep in step.
+   */
+  openSections: z.array(z.string().min(1).max(40)).max(20).optional(),
 });
 
 const verifyBodySchema = z.object({

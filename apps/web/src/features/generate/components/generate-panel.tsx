@@ -10,12 +10,14 @@ import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { Separator } from "@nai-desktop-studio/ui/components/separator";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { ChevronDown, Loader2, Square, WandSparkles } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { SegmentedControl } from "@/components/segmented-control";
+import { useSettings } from "@/features/settings/hooks/queries";
 import { useT } from "@/i18n/provider";
 
 import { aspectOfSize, SUPPORTS_CHARACTERS_PREFIX } from "../constants";
+import type { PanelSectionId } from "../constants";
 import type { FormState, GenerationMode } from "../types/generate";
 import type { TemplateSelection } from "../types/template";
 import { CharactersSection } from "./characters-section";
@@ -45,6 +47,13 @@ function Section({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+
+  // The setting arrives a moment after the first paint, and can change while
+  // the panel is on screen. Follow it both times. A section opened by hand
+  // stays open, because only a change to the setting runs this again.
+  useEffect(() => {
+    setOpen(defaultOpen);
+  }, [defaultOpen]);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -112,6 +121,12 @@ export function GeneratePanel({
       ? form.vibes.length
       : form.references.length);
   const supportsCharacters = form.model.startsWith(SUPPORTS_CHARACTERS_PREFIX);
+  const { data: settings } = useSettings();
+  const openSections = settings?.openSections;
+  const startsOpen = useCallback(
+    (id: PanelSectionId) => openSections?.includes(id) ?? false,
+    [openSections]
+  );
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -138,7 +153,10 @@ export function GeneratePanel({
               hand-written character list would be two more sources of truth
               for the same thing. */}
           {mode === "batch" ? (
-            <Section title={t("generate.section.template")} defaultOpen>
+            <Section
+              title={t("generate.section.template")}
+              defaultOpen={startsOpen("template")}
+            >
               <TemplateSection
                 selection={templateSelection}
                 onSelectionChange={onTemplateSelectionChange}
@@ -158,6 +176,7 @@ export function GeneratePanel({
           {mode === "normal" && supportsCharacters && (
             <Section
               title={t("generate.section.characters")}
+              defaultOpen={startsOpen("characters")}
               badge={
                 form.characters.length > 0
                   ? String(form.characters.length)
@@ -174,12 +193,16 @@ export function GeneratePanel({
 
           <Section
             title={t("generate.section.reference")}
+            defaultOpen={startsOpen("reference")}
             badge={referenceCount > 0 ? String(referenceCount) : undefined}
           >
             <ReferenceSettings form={form} update={update} />
           </Section>
 
-          <Section title={t("generate.section.advanced")}>
+          <Section
+            title={t("generate.section.advanced")}
+            defaultOpen={startsOpen("advanced")}
+          >
             <AdvancedSettings form={form} update={update} />
           </Section>
         </div>

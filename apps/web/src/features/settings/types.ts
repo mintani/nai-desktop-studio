@@ -20,6 +20,8 @@ export type AppSettings = {
   /** Only affects the Anlas estimate, not what NovelAI charges. */
   plan: Plan;
   generationMode: GenerationMode;
+  /** Ids of the generate-panel sections that start expanded. */
+  openSections: string[];
 };
 
 export type SettingsPatch = {
@@ -28,6 +30,7 @@ export type SettingsPatch = {
   defaultModel?: string;
   plan?: Plan;
   generationMode?: GenerationMode;
+  openSections?: string[];
 };
 
 /** NovelAI subscription info. Used for the Anlas balance shown in the header. */

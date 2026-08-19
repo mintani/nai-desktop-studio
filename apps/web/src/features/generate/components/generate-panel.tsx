@@ -21,6 +21,7 @@ import type { PanelSectionId } from "../constants";
 import type { FormState, GenerationMode } from "../types/generate";
 import type { TemplateSelection } from "../types/template";
 import { CharactersSection } from "./characters-section";
+import { I2iSection } from "./i2i-section";
 import {
   AdvancedSettings,
   CountField,
@@ -167,6 +168,8 @@ export function GeneratePanel({
           ) : (
             <PromptSection form={form} update={update} />
           )}
+
+          {form.i2i && <I2iSection i2i={form.i2i} update={update} />}
 
           <SizeField form={form} update={update} />
           <CountField form={form} update={update} />

@@ -42,8 +42,6 @@ const DEFAULT_VIBE_STRENGTH = 0.6;
 const DEFAULT_VIBE_INFO_EXTRACTED = 0.7;
 const DEFAULT_REFERENCE_STRENGTH = 1;
 const DEFAULT_REFERENCE_FIDELITY = 1;
-const DEFAULT_I2I_STRENGTH = 0.7;
-const DEFAULT_I2I_NOISE = 0;
 
 function randomId() {
   return `ref-${crypto.randomUUID()}`;
@@ -242,74 +240,21 @@ function ReferenceRow({
   );
 }
 
-function I2iRow({
-  i2i,
-  onUpdate,
-  onRemove,
-}: {
-  i2i: NonNullable<FormState["i2i"]>;
-  onUpdate: (patch: Partial<NonNullable<FormState["i2i"]>>) => void;
-  onRemove: () => void;
-}) {
-  const t = useT();
-  const [strength, setStrength] = useState(i2i.strength);
-  const [noise, setNoise] = useState(i2i.noise);
-
-  return (
-    <div className="flex items-start gap-2 rounded border p-2">
-      <img
-        src={i2i.previewUrl}
-        alt=""
-        className="size-12 shrink-0 rounded object-cover"
-        decoding="async"
-      />
-      <div className="min-w-0 flex-1 space-y-2">
-        <div className="flex justify-end">
-          <RemoveButton onClick={onRemove} />
-        </div>
-        <LabeledSlider
-          label={t("reference.i2i.strength")}
-          value={strength}
-          min={0.01}
-          max={0.99}
-          step={0.01}
-          onChange={setStrength}
-          onCommit={(value) => onUpdate({ strength: value })}
-          format={(value) => value.toFixed(2)}
-        />
-        <LabeledSlider
-          label={t("reference.i2i.noise")}
-          value={noise}
-          min={0}
-          max={0.99}
-          step={0.01}
-          onChange={setNoise}
-          onCommit={(value) => onUpdate({ noise: value })}
-          format={(value) => value.toFixed(2)}
-        />
-      </div>
-    </div>
-  );
-}
-
 type Props = {
   form: Pick<
     FormState,
-    | "model"
-    | "i2i"
-    | "referenceMode"
-    | "vibes"
-    | "references"
-    | "libraryReferenceIds"
+    "model" | "referenceMode" | "vibes" | "references" | "libraryReferenceIds"
   >;
   update: (patch: Partial<FormState>) => void;
 };
 
 /**
  * Reference-related settings. Per NovelAI's spec, vibe and precise reference
- * can't be combined in the same generation, so tabs make them exclusive. i2i is
- * a separate track that transforms the source image directly, so it can be used
- * alongside either.
+ * can't be combined in the same generation, so tabs make them exclusive.
+ *
+ * The source image for i2i is not here: it is the picture being redrawn, not
+ * something a reference is taken from, and it has its own place under the
+ * prompt.
  */
 export function ReferenceSettings({ form, update }: Props) {
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -327,27 +272,6 @@ export function ReferenceSettings({ form, update }: Props) {
       ? MAX_VIBE_REFERENCES
       : MAX_CHARACTER_REFERENCES;
   const atMax = inUse >= limit;
-
-  async function handlePickI2i(file: File) {
-    const read = await readImageFile(file);
-    if (!read.ok) {
-      toast.error(
-        read.reason === "not-image"
-          ? t("reference.error.notImage")
-          : t("reference.error.tooLarge")
-      );
-      return;
-    }
-    if (form.i2i) URL.revokeObjectURL(form.i2i.previewUrl);
-    update({
-      i2i: {
-        previewUrl: read.previewUrl,
-        imageBase64: read.imageBase64,
-        strength: DEFAULT_I2I_STRENGTH,
-        noise: DEFAULT_I2I_NOISE,
-      },
-    });
-  }
 
   async function handleAddVibe(file: File) {
     const read = await readImageFile(file);
@@ -416,29 +340,6 @@ export function ReferenceSettings({ form, update }: Props) {
 
   return (
     <div className="space-y-4">
-      <section className="space-y-2">
-        <h4 className="text-muted-foreground text-[11px] font-medium">
-          {t("reference.i2i.title")}
-        </h4>
-        {form.i2i ? (
-          <I2iRow
-            i2i={form.i2i}
-            onUpdate={(patch) =>
-              form.i2i && update({ i2i: { ...form.i2i, ...patch } })
-            }
-            onRemove={() => {
-              if (form.i2i) URL.revokeObjectURL(form.i2i.previewUrl);
-              update({ i2i: null });
-            }}
-          />
-        ) : (
-          <AddImageButton
-            label={t("reference.i2i.pick")}
-            onPick={handlePickI2i}
-          />
-        )}
-      </section>
-
       <section className="space-y-2">
         <SegmentedControl
           label={t("reference.mode.label")}

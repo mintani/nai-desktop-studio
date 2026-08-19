@@ -3,7 +3,13 @@ import { bytesToBase64 } from "@/lib/base64";
 const MAX_IMAGE_BYTES = 10_000_000;
 
 export type ReadImageResult =
-  | { ok: true; imageBase64: string; previewUrl: string }
+  | {
+      ok: true;
+      imageBase64: string;
+      previewUrl: string;
+      /** The raw file, for readers that need the bytes (PNG metadata). */
+      bytes: Uint8Array;
+    }
   | { ok: false; reason: "not-image" | "too-large" };
 
 /**
@@ -20,11 +26,12 @@ export async function readImageFile(file: File): Promise<ReadImageResult> {
     return { ok: false, reason: "too-large" };
   }
 
-  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(await file.arrayBuffer());
 
   return {
     ok: true,
-    imageBase64: bytesToBase64(new Uint8Array(buffer)),
+    imageBase64: bytesToBase64(bytes),
     previewUrl: URL.createObjectURL(file),
+    bytes,
   };
 }

@@ -103,15 +103,25 @@ export function buildGenerateRequest(
     index,
     ...(nSamples === undefined ? {} : { n_samples: nSamples }),
     ...(characters && characters.length > 0 ? { characters } : {}),
-    ...(form.i2i
+    // One or the other. A mask means the run is an infill, which NovelAI does
+    // with a different model, so sending both would be rejected downstream.
+    ...(form.inpaint
       ? {
-          i2i: {
-            image: form.i2i.imageBase64,
-            strength: form.i2i.strength,
-            noise: form.i2i.noise,
+          inpaint: {
+            image: form.inpaint.imageBase64,
+            mask: form.inpaint.maskBase64,
+            strength: form.inpaint.strength,
           },
         }
-      : {}),
+      : form.i2i
+        ? {
+            i2i: {
+              image: form.i2i.imageBase64,
+              strength: form.i2i.strength,
+              noise: form.i2i.noise,
+            },
+          }
+        : {}),
     ...(useVibes
       ? {
           controlnet: {

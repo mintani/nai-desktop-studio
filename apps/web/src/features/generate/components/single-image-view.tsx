@@ -8,6 +8,7 @@ import {
   Download,
   Hash,
   Loader2,
+  Paintbrush,
   Trash2,
 } from "lucide-react";
 import { Button } from "@nai-desktop-studio/ui/components/button";
@@ -34,6 +35,7 @@ type Props = {
   onCopyPrompt: (image: GeneratedImage) => void;
   onCopySeed: (image: GeneratedImage) => void;
   onDelete: (image: GeneratedImage) => void;
+  onInpaint: (image: GeneratedImage) => void;
 };
 
 // Carousel slide width (%). The remaining (100-SLIDE_W)/2 on each side lets the
@@ -59,6 +61,7 @@ export function SingleImageView({
   onCopyPrompt,
   onCopySeed,
   onDelete,
+  onInpaint,
 }: Props) {
   const t = useT();
   const images = slots
@@ -310,6 +313,17 @@ export function SingleImageView({
             >
               <Hash aria-hidden />
               <span className="sr-only">{t("viewer.action.copySeed")}</span>
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              className="rounded-full"
+              title={t("inpaint.start")}
+              onClick={() => onInpaint(shown)}
+            >
+              <Paintbrush aria-hidden />
+              <span className="sr-only">{t("inpaint.start")}</span>
             </Button>
             <Button
               type="button"

@@ -40,6 +40,21 @@ export type AdhocReference = {
   fidelity: number;
 };
 
+/**
+ * Source image and the mask painted over it.
+ *
+ * White in the mask is what gets redrawn; black is kept. NovelAI calls this
+ * "infill" and switches to an inpainting model for it, so it cannot run in the
+ * same request as i2i.
+ */
+export type InpaintSource = {
+  previewUrl: string;
+  imageBase64: string;
+  /** Black-and-white PNG, same pixel size as the image. */
+  maskBase64: string;
+  strength: number;
+};
+
 /** Source image for i2i. Higher strength drifts further from the source. */
 export type I2iSource = {
   previewUrl: string;

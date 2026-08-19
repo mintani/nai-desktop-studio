@@ -104,6 +104,7 @@ export const INITIAL_FORM: FormState = {
   varietyBoost: false,
   characters: [],
   i2i: null,
+  inpaint: null,
   referenceMode: "vibe",
   vibes: [],
   references: [],

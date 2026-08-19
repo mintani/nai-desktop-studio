@@ -22,6 +22,7 @@ import type { FormState, GenerationMode } from "../types/generate";
 import type { TemplateSelection } from "../types/template";
 import { CharactersSection } from "./characters-section";
 import { I2iSection } from "./i2i-section";
+import { InpaintSection } from "./inpaint-section";
 import {
   AdvancedSettings,
   CountField,
@@ -94,6 +95,8 @@ type Props = {
   anlasText: string | null;
   onGenerate: () => void;
   onCancel: () => void;
+  /** Reopens the mask editor for the image already set for a partial redraw. */
+  onEditMask: () => void;
 };
 
 /**
@@ -114,6 +117,7 @@ export function GeneratePanel({
   anlasText,
   onGenerate,
   onCancel,
+  onEditMask,
 }: Props) {
   const t = useT();
   const referenceCount =
@@ -170,6 +174,13 @@ export function GeneratePanel({
           )}
 
           {form.i2i && <I2iSection i2i={form.i2i} update={update} />}
+          {form.inpaint && (
+            <InpaintSection
+              inpaint={form.inpaint}
+              update={update}
+              onEditMask={onEditMask}
+            />
+          )}
 
           <SizeField form={form} update={update} />
           <CountField form={form} update={update} />

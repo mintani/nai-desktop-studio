@@ -444,6 +444,23 @@ export function GenerateWorkspace() {
           setViewedBatch(images);
           setSelectedIds([]);
         }}
+        onDownload={downloadImage}
+        onCopyPrompt={(image) =>
+          void copyWithToast(image.prompt, "image.copiedPrompt")
+        }
+        onDeleteImages={async (ids) => {
+          await library.deleteImages(ids);
+          // The viewer and lightbox may still hold images that are now gone.
+          const removed = new Set(ids);
+          setViewedBatch((current) =>
+            current ? current.filter((image) => !removed.has(image.id)) : null
+          );
+          setSelectedIds((current) => current.filter((id) => !removed.has(id)));
+          setLightboxId((current) =>
+            current && removed.has(current) ? null : current
+          );
+        }}
+        isDeleting={library.isDeleting}
       />
 
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />

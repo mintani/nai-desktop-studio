@@ -47,6 +47,15 @@ const en = {
   "viewer.library.empty": "No images yet",
   "viewer.library.noPrompt": "No prompt",
   "viewer.library.openImage": "Open image from {time}",
+  "viewer.library.openBatch": "Open run",
+  "viewer.library.selectBatch": "Select run",
+  "viewer.library.deselectBatch": "Deselect run",
+  "viewer.library.pickedInBatch": "{count} picked",
+  "viewer.library.selectedCount": "{count} selected",
+  "viewer.library.clearSelection": "Clear",
+  "viewer.library.deleteTitle": "Delete these images?",
+  "viewer.library.deleteDescription":
+    "{count} image(s) will be removed from the output folder. This cannot be undone.",
 } as const;
 
 const ja: Record<keyof typeof en, string> = {
@@ -91,6 +100,15 @@ const ja: Record<keyof typeof en, string> = {
   "viewer.library.empty": "まだ画像がありません",
   "viewer.library.noPrompt": "プロンプトなし",
   "viewer.library.openImage": "{time} の画像を開く",
+  "viewer.library.openBatch": "この回を開く",
+  "viewer.library.selectBatch": "この回を選択",
+  "viewer.library.deselectBatch": "選択を外す",
+  "viewer.library.pickedInBatch": "{count} 枚選択中",
+  "viewer.library.selectedCount": "{count} 枚を選択中",
+  "viewer.library.clearSelection": "選択を解除",
+  "viewer.library.deleteTitle": "画像を削除しますか",
+  "viewer.library.deleteDescription":
+    "{count} 枚を保存先フォルダから削除します。元には戻せません。",
 };
 
 export const viewer = { en, ja };

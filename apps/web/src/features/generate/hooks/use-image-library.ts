@@ -54,6 +54,40 @@ export function useImageLibrary() {
     },
   });
 
+  /**
+   * Removes several images at once.
+   *
+   * One request each, in order: the server deletes a file per call and a local
+   * one is fast, while firing dozens at once only makes the failure modes
+   * harder to report. The cache is updated once at the end so the grid does
+   * not reflow per image.
+   */
+  const removeMany = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const deleted: string[] = [];
+      for (const id of ids) {
+        try {
+          await deleteImage(id);
+          deleted.push(id);
+        } catch {
+          // An image already gone from disk should not stop the rest.
+        }
+      }
+      return deleted;
+    },
+    onSuccess: (deleted) => {
+      const gone = new Set(deleted);
+      queryClient.setQueryData<{ images: GeneratedImage[] }>(
+        imagesQueryKey,
+        (current) => ({
+          images: (current?.images ?? []).filter(
+            (image) => !gone.has(image.id)
+          ),
+        })
+      );
+    },
+  });
+
   const clear = useMutation({
     mutationFn: () => clearImages(),
     onSuccess: () => {
@@ -66,6 +100,8 @@ export function useImageLibrary() {
     isPending: query.isPending,
     addImage,
     deleteImage: remove.mutate,
+    deleteImages: removeMany.mutateAsync,
+    isDeleting: removeMany.isPending,
     clearImages: clear.mutate,
   };
 }

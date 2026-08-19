@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@nai-desktop-studio/ui/components/button";
+import { Checkbox } from "@nai-desktop-studio/ui/components/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,7 @@ import { Separator } from "@nai-desktop-studio/ui/components/separator";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { PANEL_SECTIONS } from "@/features/generate/constants";
 import type { MessageKey } from "@/i18n/messages";
 import { useT } from "@/i18n/provider";
 
@@ -74,6 +76,21 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
     try {
       await saveSettings.mutateAsync({ generationMode });
       toast.success(t("settings.mode.saved"));
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t("settings.output.errorSave")
+      );
+    }
+  }
+
+  const openSections = settings?.openSections ?? [];
+
+  async function toggleSection(id: string) {
+    const next = openSections.includes(id)
+      ? openSections.filter((item) => item !== id)
+      : [...openSections, id];
+    try {
+      await saveSettings.mutateAsync({ openSections: next });
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : t("settings.output.errorSave")
@@ -226,6 +243,32 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
             </div>
             <p className="text-muted-foreground text-xs">
               {t("settings.output.help")}
+            </p>
+          </section>
+
+          <Separator />
+
+          {/* Checkboxes rather than one of the three "selected" idioms: this is
+              a set, not a choice among alternatives, and a checkbox is already
+              its own mark. */}
+          <section className="space-y-2">
+            <Label>{t("settings.sections.label")}</Label>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              {PANEL_SECTIONS.map((section) => (
+                <Label
+                  key={section.id}
+                  className="flex items-center gap-2 py-1.5 font-normal"
+                >
+                  <Checkbox
+                    checked={openSections.includes(section.id)}
+                    onCheckedChange={() => void toggleSection(section.id)}
+                  />
+                  {t(section.labelKey)}
+                </Label>
+              ))}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              {t("settings.sections.help")}
             </p>
           </section>
         </div>

@@ -136,3 +136,19 @@ export const CATEGORY_LABELS: Record<number, string> = {
   12: "Species",
   14: "Meta",
 };
+
+/**
+ * The panel sections that can be set to start expanded.
+ *
+ * The prompt, size and count fields are not here: they are always visible, and
+ * a setting for something that cannot be closed would be a switch attached to
+ * nothing.
+ */
+export const PANEL_SECTIONS = [
+  { id: "template", labelKey: "generate.section.template" },
+  { id: "characters", labelKey: "generate.section.characters" },
+  { id: "reference", labelKey: "generate.section.reference" },
+  { id: "advanced", labelKey: "generate.section.advanced" },
+] as const;
+
+export type PanelSectionId = (typeof PANEL_SECTIONS)[number]["id"];

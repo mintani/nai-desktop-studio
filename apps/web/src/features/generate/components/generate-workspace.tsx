@@ -19,7 +19,7 @@ import { useAnlasEstimate } from "../hooks/use-anlas-estimate";
 import { useGenerationEngine } from "../hooks/use-generation-engine";
 import { useImageLibrary } from "../hooks/use-image-library";
 import { useReferenceSpend } from "../hooks/use-reference-spend";
-import { supportsReferences } from "../lib/build-request";
+import { supportsReferences, supportsVibes } from "../lib/build-request";
 import {
   COMPOSED_PROMPT_FLAGS,
   composeTemplateJobs,
@@ -228,7 +228,9 @@ export function GenerateWorkspace() {
         vibes: [],
       };
     }
-    if (loaded.vibes.length > 0) {
+    // A model with no vibe support (V5) leaves the style's vibes unused, the
+    // same way its references go unused on a pre-V4.5 model.
+    if (loaded.vibes.length > 0 && supportsVibes(model)) {
       return {
         referenceMode: "vibe" as const,
         vibes: loaded.vibes,

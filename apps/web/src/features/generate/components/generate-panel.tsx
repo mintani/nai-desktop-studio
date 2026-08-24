@@ -16,8 +16,9 @@ import { SegmentedControl } from "@/components/segmented-control";
 import { useSettings } from "@/features/settings/hooks/queries";
 import { useT } from "@/i18n/provider";
 
-import { aspectOfSize, SUPPORTS_CHARACTERS_PREFIX } from "../constants";
+import { aspectOfSize } from "../constants";
 import type { PanelSectionId } from "../constants";
+import { supportsCharacters as modelSupportsCharacters } from "../lib/build-request";
 import type { FormState, GenerationMode } from "../types/generate";
 import type { TemplateSelection } from "../types/template";
 import { CharactersSection } from "./characters-section";
@@ -120,7 +121,7 @@ export function GeneratePanel({
     (form.referenceMode === "vibe"
       ? form.vibes.length
       : form.references.length);
-  const supportsCharacters = form.model.startsWith(SUPPORTS_CHARACTERS_PREFIX);
+  const supportsCharacters = modelSupportsCharacters(form.model);
   const { data: settings } = useSettings();
   const openSections = settings?.openSections;
   const startsOpen = useCallback(

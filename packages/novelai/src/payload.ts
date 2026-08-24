@@ -4,7 +4,7 @@ import {
   UC_PRESET_INT,
   UC_PRESET_TEXT,
 } from "./constants";
-import { isV4Model, isV45Model } from "./schemas";
+import { isV4Model, isV45Model, isV5Model } from "./schemas";
 import type {
   CharacterPosition,
   EncodeVibeBody,
@@ -134,6 +134,17 @@ export async function buildGeneratePayload(
   if (body.character_references?.length && !isV45Model(model)) {
     throw new Error("Character references are only supported for V4.5 models");
   }
+  if (body.controlnet && isV5Model(model)) {
+    throw new Error("Vibe transfer is not supported for V5 models");
+  }
+  if (
+    (body.straight_alpha || body.tag_hint_transparent_background) &&
+    !isV5Model(model)
+  ) {
+    throw new Error(
+      "straight_alpha and tag_hint_transparent_background are only supported for V5 models"
+    );
+  }
 
   const source = body.i2i ?? body.inpaint;
 
@@ -192,7 +203,7 @@ export async function buildGeneratePayload(
     model: resolveApiModel(body),
     use_new_shared_trial: true,
     parameters: {
-      params_version: 3,
+      params_version: isV5Model(model) ? 4 : 3,
       legacy: false,
       legacy_v3_extend: false,
       deliberate_euler_ancestral_bug: false,
@@ -223,6 +234,11 @@ export async function buildGeneratePayload(
       ucPreset: UC_PRESET_INT[body.uc_preset ?? "light"],
       cfg_rescale: body.cfg_rescale ?? 0,
       skip_cfg_above_sigma: body.variety_boost ? 58 : undefined,
+      // Only sent when set: JSON.stringify drops undefined, and older models
+      // reject the fields.
+      straight_alpha: body.straight_alpha || undefined,
+      tag_hint_transparent_background:
+        body.tag_hint_transparent_background || undefined,
       image: source?.image,
       strength: body.i2i ? source?.strength : body.inpaint ? 0.7 : undefined,
       noise: body.i2i?.noise,

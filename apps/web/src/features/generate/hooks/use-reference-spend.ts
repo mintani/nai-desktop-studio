@@ -5,6 +5,7 @@ import { VIBE_FREE_COUNT } from "@nai-desktop-studio/novelai/constants";
 import { useReferences } from "@/features/reference-library/hooks/queries";
 
 import { pickedLibraryReferences } from "../lib/library-references";
+import { supportsVibes } from "../lib/build-request";
 import type { FormState } from "../types/generate";
 
 /**
@@ -24,6 +25,10 @@ export function useReferenceSpend(form: FormState): boolean {
   if (form.referenceMode === "reference") {
     return form.references.length + picked.length > 0;
   }
+
+  // On a model with no vibe support (V5), vibes are neither encoded nor sent,
+  // so there is nothing to confirm.
+  if (!supportsVibes(form.model)) return false;
 
   const vibeCount = form.vibes.length + picked.length;
   if (vibeCount === 0) return false;

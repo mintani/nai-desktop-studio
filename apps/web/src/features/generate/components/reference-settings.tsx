@@ -27,7 +27,10 @@ import type { MessageKey } from "@/i18n/messages";
 
 import { readImageFile } from "../lib/image-file";
 import { pickedLibraryReferences } from "../lib/library-references";
-import { supportsReferences } from "../lib/build-request";
+import {
+  supportsReferenceImages,
+  supportsReferences,
+} from "../lib/build-request";
 import type { FormState } from "../types/generate";
 import {
   REFERENCE_TYPE_LABEL_KEYS,
@@ -439,143 +442,160 @@ export function ReferenceSettings({ form, update }: Props) {
         )}
       </section>
 
-      <section className="space-y-2">
-        <SegmentedControl
-          label={t("reference.mode.label")}
-          value={form.referenceMode}
-          options={[
-            { value: "vibe", label: t("reference.mode.vibe") },
-            {
-              value: "reference",
-              label: t("reference.mode.precise"),
-              disabled: !referenceAvailable,
-            },
-          ]}
-          onChange={(referenceMode: ReferenceMode) => update({ referenceMode })}
-        />
-
-        {!referenceAvailable && (
+      {/* V5 takes no reference images at all yet, so the whole vibe / precise
+          block folds into one line saying so. i2i above still works. */}
+      {!supportsReferenceImages(form.model) ? (
+        <section className="space-y-2">
+          <h4 className="text-muted-foreground text-[11px] font-medium">
+            {t("reference.mode.label")}
+          </h4>
           <p className="text-muted-foreground text-[10px] leading-tight">
-            {t("reference.onlyV45")}
+            {t("reference.noneOnV5")}
           </p>
-        )}
+        </section>
+      ) : (
+        <section className="space-y-2">
+          <SegmentedControl
+            label={t("reference.mode.label")}
+            value={form.referenceMode}
+            options={[
+              { value: "vibe", label: t("reference.mode.vibe") },
+              {
+                value: "reference",
+                label: t("reference.mode.precise"),
+                disabled: !referenceAvailable,
+              },
+            ]}
+            onChange={(referenceMode: ReferenceMode) =>
+              update({ referenceMode })
+            }
+          />
 
-        {form.referenceMode === "vibe" ? (
-          <div className="space-y-2">
-            {form.vibes.length > 0 && (
-              <ul className="space-y-2">
-                {form.vibes.map((vibe) => (
-                  <VibeRow
-                    key={vibe.id}
-                    vibe={vibe}
-                    onUpdate={(patch) =>
-                      update({
-                        vibes: form.vibes.map((item) =>
-                          item.id === vibe.id ? { ...item, ...patch } : item
-                        ),
-                      })
-                    }
-                    onRemove={() => removeVibe(vibe.id)}
-                  />
-                ))}
-              </ul>
-            )}
-            <AddImageButton
-              label={atMax ? t("reference.atMax") : t("reference.vibe.add")}
-              disabled={atMax}
-              onPick={handleAddVibe}
-            />
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {form.references.length > 0 && (
-              <ul className="space-y-2">
-                {form.references.map((reference) => (
-                  <ReferenceRow
-                    key={reference.id}
-                    reference={reference}
-                    onUpdate={(patch) =>
-                      update({
-                        references: form.references.map((item) =>
-                          item.id === reference.id
-                            ? { ...item, ...patch }
-                            : item
-                        ),
-                      })
-                    }
-                    onRemove={() => removeReference(reference.id)}
-                  />
-                ))}
-              </ul>
-            )}
-            <AddImageButton
-              label={atMax ? t("reference.atMax") : t("reference.precise.add")}
-              disabled={!referenceAvailable || atMax}
-              onPick={handleAddReference}
-            />
-          </div>
-        )}
-        {/* Saved references. Separate from the images added above because
+          {!referenceAvailable && (
+            <p className="text-muted-foreground text-[10px] leading-tight">
+              {t("reference.onlyV45")}
+            </p>
+          )}
+
+          {form.referenceMode === "vibe" ? (
+            <div className="space-y-2">
+              {form.vibes.length > 0 && (
+                <ul className="space-y-2">
+                  {form.vibes.map((vibe) => (
+                    <VibeRow
+                      key={vibe.id}
+                      vibe={vibe}
+                      onUpdate={(patch) =>
+                        update({
+                          vibes: form.vibes.map((item) =>
+                            item.id === vibe.id ? { ...item, ...patch } : item
+                          ),
+                        })
+                      }
+                      onRemove={() => removeVibe(vibe.id)}
+                    />
+                  ))}
+                </ul>
+              )}
+              <AddImageButton
+                label={atMax ? t("reference.atMax") : t("reference.vibe.add")}
+                disabled={atMax}
+                onPick={handleAddVibe}
+              />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {form.references.length > 0 && (
+                <ul className="space-y-2">
+                  {form.references.map((reference) => (
+                    <ReferenceRow
+                      key={reference.id}
+                      reference={reference}
+                      onUpdate={(patch) =>
+                        update({
+                          references: form.references.map((item) =>
+                            item.id === reference.id
+                              ? { ...item, ...patch }
+                              : item
+                          ),
+                        })
+                      }
+                      onRemove={() => removeReference(reference.id)}
+                    />
+                  ))}
+                </ul>
+              )}
+              <AddImageButton
+                label={
+                  atMax ? t("reference.atMax") : t("reference.precise.add")
+                }
+                disabled={!referenceAvailable || atMax}
+                onPick={handleAddReference}
+              />
+            </div>
+          )}
+          {/* Saved references. Separate from the images added above because
             these keep their encode: picking one again costs nothing, while a
             fresh drop pays 2 Anlas every run. */}
-        <div className="space-y-1.5 border-t pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="w-full justify-between rounded-sm! px-2 font-normal"
-            onClick={() => setLibraryOpen(true)}
-          >
-            <span
-              className={cn(
-                "truncate",
-                picked.length === 0 && "text-muted-foreground"
-              )}
+          <div className="space-y-1.5 border-t pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full justify-between rounded-sm! px-2 font-normal"
+              onClick={() => setLibraryOpen(true)}
             >
-              {picked.length > 0
-                ? t("referenceLibrary.picked", { count: picked.length })
-                : t("referenceLibrary.open")}
-            </span>
-            <Library className="text-muted-foreground shrink-0" aria-hidden />
-          </Button>
-          {picked.length > 0 && (
-            <ul className="flex flex-wrap gap-1">
-              {picked.map((entry) => (
-                <li
-                  key={entry.id}
-                  className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-1.5 text-[10px]"
-                >
-                  <img
-                    src={referenceImageUrl(entry.id)}
-                    alt=""
-                    className="size-4 shrink-0 rounded-full object-cover"
-                  />
-                  <span className="truncate">{entry.name}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    className="text-muted-foreground hover:text-destructive size-4"
-                    title={t("generate.character.remove")}
-                    onClick={() =>
-                      update({
-                        libraryReferenceIds: form.libraryReferenceIds.filter(
-                          (id) => id !== entry.id
-                        ),
-                      })
-                    }
+              <span
+                className={cn(
+                  "truncate",
+                  picked.length === 0 && "text-muted-foreground"
+                )}
+              >
+                {picked.length > 0
+                  ? t("referenceLibrary.picked", { count: picked.length })
+                  : t("referenceLibrary.open")}
+              </span>
+              <Library className="text-muted-foreground shrink-0" aria-hidden />
+            </Button>
+            {picked.length > 0 && (
+              <ul className="flex flex-wrap gap-1">
+                {picked.map((entry) => (
+                  <li
+                    key={entry.id}
+                    className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-1.5 text-[10px]"
                   >
-                    <X className="size-2.5" aria-hidden />
-                    <span className="sr-only">
-                      {t("generate.character.remove")}
-                    </span>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
+                    <img
+                      src={referenceImageUrl(entry.id)}
+                      alt=""
+                      className="size-4 shrink-0 rounded-full object-cover"
+                    />
+                    <span className="truncate">{entry.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      className="text-muted-foreground hover:text-destructive size-4"
+                      title={t("generate.character.remove")}
+                      onClick={() =>
+                        update({
+                          libraryReferenceIds: form.libraryReferenceIds.filter(
+                            (id) => id !== entry.id
+                          ),
+                        })
+                      }
+                    >
+                      <X className="size-2.5" aria-hidden />
+                      <span className="sr-only">
+                        {t("generate.character.remove")}
+                      </span>
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
 
       <ReferencePickerDialog
         open={libraryOpen}

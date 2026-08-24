@@ -27,6 +27,7 @@ import {
   SIZE_OPTIONS,
   UC_PRESET_OPTIONS,
 } from "../constants";
+import { supportsTransparency } from "../lib/build-request";
 import type {
   FormState,
   NoiseSchedule,
@@ -385,6 +386,20 @@ export function AdvancedSettings({ form, update }: Props) {
             onCheckedChange={(varietyBoost) => update({ varietyBoost })}
           />
         </div>
+        {supportsTransparency(form.model) && (
+          <div className="flex items-center justify-between">
+            <Label htmlFor="transparent-toggle" className="font-normal">
+              {t("generate.transparentBackground")}
+            </Label>
+            <Switch
+              id="transparent-toggle"
+              checked={form.transparentBackground}
+              onCheckedChange={(transparentBackground) =>
+                update({ transparentBackground })
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -72,6 +72,7 @@ const en = {
   "generate.ucPreset": "Negative preset",
   "generate.qualityTags": "Add quality tags",
   "generate.varietyBoost": "Variety boost",
+  "generate.transparentBackground": "Transparent background",
 
   "generate.uc.light": "Light",
   "generate.uc.strong": "Strong",
@@ -184,6 +185,8 @@ const en = {
   "reference.warn.vibeEncode": "Encoding will cost 2 Anlas when you generate",
   "reference.warn.precise": "A precise reference costs 5 Anlas per image",
   "reference.onlyV45": "Precise reference works on V4.5 models only",
+  "reference.noneOnV5":
+    "V5 models do not support vibe or precise reference yet",
   "reference.error.notImage": "Choose an image file",
   "reference.error.tooLarge": "Images must be 10 MB or smaller",
 
@@ -281,6 +284,7 @@ const ja: Record<keyof typeof en, string> = {
   "generate.ucPreset": "ネガティブプリセット",
   "generate.qualityTags": "クオリティタグを付ける",
   "generate.varietyBoost": "バリエーション強化",
+  "generate.transparentBackground": "背景を透過する",
 
   "generate.uc.light": "ライト",
   "generate.uc.strong": "ストロング",
@@ -390,6 +394,7 @@ const ja: Record<keyof typeof en, string> = {
   "reference.warn.vibeEncode": "生成時にエンコードで 2 Anlas を消費します",
   "reference.warn.precise": "精密参照は 1 枚あたり 5 Anlas を消費します",
   "reference.onlyV45": "精密参照は V4.5 系モデルでのみ使えます",
+  "reference.noneOnV5": "V5 系モデルは Vibe・精密参照にまだ対応していません",
   "reference.error.notImage": "画像ファイルを選択してください",
   "reference.error.tooLarge": "画像サイズは 10MB 以内にしてください",
 

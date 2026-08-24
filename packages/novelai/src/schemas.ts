@@ -76,6 +76,10 @@ export const generateImageSchema = z.object({
   n_samples: z.number().int().min(1).max(8).optional(),
   cfg_rescale: z.number().min(0).max(1).optional(),
   variety_boost: z.boolean().optional(),
+  // V5-only: emit a straight (unmultiplied) alpha channel.
+  straight_alpha: z.boolean().optional(),
+  // V5-only: hint the model toward a transparent background.
+  tag_hint_transparent_background: z.boolean().optional(),
   i2i: z
     .object({
       image: z.string().min(1),
@@ -144,11 +148,11 @@ export type UCPreset =
   | "none";
 
 /**
- * Whether this is a V4-family model (only V4 supports characters /
- * char_captions).
+ * Whether this model uses the V4 prompt structure (v4_prompt / char_captions,
+ * which also carries characters). V5 kept the structure, so it counts too.
  */
 export function isV4Model(model: ImageModel): boolean {
-  return model.startsWith("nai-diffusion-4");
+  return model.startsWith("nai-diffusion-4") || isV5Model(model);
 }
 
 /**
@@ -157,4 +161,13 @@ export function isV4Model(model: ImageModel): boolean {
  */
 export function isV45Model(model: ImageModel): boolean {
   return model.startsWith("nai-diffusion-4-5");
+}
+
+/**
+ * Whether this is a V5-family model. V5 sends params_version 4, adds the
+ * transparency parameters, and does not support vibe transfer or precise
+ * reference yet.
+ */
+export function isV5Model(model: ImageModel): boolean {
+  return model.startsWith("nai-diffusion-5");
 }

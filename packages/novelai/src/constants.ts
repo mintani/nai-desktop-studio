@@ -5,6 +5,8 @@ export const NOVELAI_API_BASE = "https://image.novelai.net";
 export const QUALITY_TAGS = ", very aesthetic, masterpiece, no text";
 
 export const IMAGE_MODELS = [
+  "nai-diffusion-5-full",
+  "nai-diffusion-5-curated",
   "nai-diffusion-4-5-full",
   "nai-diffusion-4-5-curated",
   "nai-diffusion-4-full",

@@ -1,6 +1,8 @@
 import type { FormState } from "./types/generate";
 
 export const MODEL_OPTIONS = [
+  { value: "nai-diffusion-5-full", label: "V5 Full" },
+  { value: "nai-diffusion-5-curated", label: "V5 Curated" },
   { value: "nai-diffusion-4-5-full", label: "V4.5 Full" },
   { value: "nai-diffusion-4-5-curated", label: "V4.5 Curated" },
   { value: "nai-diffusion-4-full", label: "V4 Full" },
@@ -62,11 +64,6 @@ export const UC_PRESET_OPTIONS = [
 
 export const N_SAMPLES_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
-/** Only V4-series models can send characters[]. */
-export const SUPPORTS_CHARACTERS_PREFIX = "nai-diffusion-4";
-/** Only V4.5-series models can use precise reference (director reference). */
-export const SUPPORTS_REFERENCE_PREFIX = "nai-diffusion-4-5";
-
 export const TAG_SEARCH_LIMIT = 15;
 
 export const POSITION_GRID = [
@@ -102,6 +99,7 @@ export const INITIAL_FORM: FormState = {
   nSamples: 1,
   quality: true,
   varietyBoost: false,
+  transparentBackground: false,
   characters: [],
   i2i: null,
   referenceMode: "vibe",

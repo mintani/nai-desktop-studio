@@ -195,6 +195,8 @@ export function estimateAnlas(body: EstimateAnlasBody) {
     );
   }
 
+  // Vibe surcharges exist on V4/V4.5 only. V3 predates vibes as billed here,
+  // and V5 has no vibe transfer at all, so the prefix check excludes both.
   const supportsV4Costs = model.startsWith("nai-diffusion-4");
   const opusDiscountApplied = Boolean(
     body.is_opus &&

@@ -1,7 +1,3 @@
-import {
-  SUPPORTS_CHARACTERS_PREFIX,
-  SUPPORTS_REFERENCE_PREFIX,
-} from "../constants";
 import type { FormState, GenerateRequestBody } from "../types/generate";
 
 /**
@@ -10,12 +6,31 @@ import type { FormState, GenerateRequestBody } from "../types/generate";
  */
 export type EncodedVibe = { encoded: string; strength: number };
 
+/** V4 and up can send characters[]; V5 kept the same prompt structure. */
 export function supportsCharacters(model: string) {
-  return model.startsWith(SUPPORTS_CHARACTERS_PREFIX);
+  return (
+    model.startsWith("nai-diffusion-4") || model.startsWith("nai-diffusion-5")
+  );
 }
 
+/** Only V4.5-series models can use precise reference (director reference). */
 export function supportsReferences(model: string) {
-  return model.startsWith(SUPPORTS_REFERENCE_PREFIX);
+  return model.startsWith("nai-diffusion-4-5");
+}
+
+/** V5 does not support vibe transfer yet; every earlier model does. */
+export function supportsVibes(model: string) {
+  return !model.startsWith("nai-diffusion-5");
+}
+
+/** Only V5 models understand the transparency parameters. */
+export function supportsTransparency(model: string) {
+  return model.startsWith("nai-diffusion-5");
+}
+
+/** Whether the model can take reference images at all (vibe or precise). */
+export function supportsReferenceImages(model: string) {
+  return supportsVibes(model) || supportsReferences(model);
 }
 
 /**
@@ -76,7 +91,10 @@ export function buildGenerateRequest(
 
   // Vibe and precise reference can't be combined, so include only one depending
   // on the mode.
-  const useVibes = form.referenceMode === "vibe" && encodedVibes.length > 0;
+  const useVibes =
+    form.referenceMode === "vibe" &&
+    encodedVibes.length > 0 &&
+    supportsVibes(form.model);
   const useReferences =
     form.referenceMode === "reference" &&
     form.references.length > 0 &&
@@ -98,6 +116,11 @@ export function buildGenerateRequest(
     ...(baseSeed === null ? {} : { seed: baseSeed + index }),
     quality: form.quality,
     variety_boost: form.varietyBoost,
+    // One switch drives both fields: alpha output without the background hint
+    // (or the reverse) is not a combination the official app offers either.
+    ...(form.transparentBackground && supportsTransparency(form.model)
+      ? { straight_alpha: true, tag_hint_transparent_background: true }
+      : {}),
     image_format: "png",
     batch_id: batchId,
     index,

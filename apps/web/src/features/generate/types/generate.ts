@@ -46,6 +46,8 @@ export type FormState = {
   nSamples: number;
   quality: boolean;
   varietyBoost: boolean;
+  /** V5-only transparent output. Ignored (not sent) on earlier models. */
+  transparentBackground: boolean;
   characters: CharacterData[];
   i2i: I2iSource | null;
   referenceMode: ReferenceMode;
@@ -76,6 +78,9 @@ export type GenerateRequestBody = {
   seed?: number;
   quality: boolean;
   variety_boost: boolean;
+  /** V5-only: emit a straight alpha channel. Sent together with the hint. */
+  straight_alpha?: boolean;
+  tag_hint_transparent_background?: boolean;
   image_format: "png";
   batch_id: string;
   index: number;

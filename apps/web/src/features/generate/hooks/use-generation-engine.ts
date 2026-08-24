@@ -14,7 +14,12 @@ import { useSettings } from "@/features/settings/hooks/queries";
 
 import { aspectOfSize } from "../constants";
 import { encodeVibe, generateImages, generateImageStream } from "../lib/api";
-import { buildGenerateRequest, type EncodedVibe } from "../lib/build-request";
+import {
+  buildGenerateRequest,
+  supportsReferenceImages,
+  supportsVibes,
+  type EncodedVibe,
+} from "../lib/build-request";
 import type { GenerationJob } from "../lib/compose";
 import type { FormState } from "../types/generate";
 import type { GeneratedImage, GenerationSlot } from "../types/image";
@@ -121,7 +126,11 @@ export function useGenerationEngine({ onImageSaved }: Options) {
         // so one encode covers the whole run.
         const first = firstJob.form;
         let encodedVibes: EncodedVibe[] = [];
-        if (first.referenceMode === "vibe" && first.vibes.length > 0) {
+        if (
+          first.referenceMode === "vibe" &&
+          first.vibes.length > 0 &&
+          supportsVibes(first.model)
+        ) {
           encodedVibes = await Promise.all(
             first.vibes.map(async (vibe) => ({
               encoded: await encodeVibe(
@@ -137,8 +146,14 @@ export function useGenerationEngine({ onImageSaved }: Options) {
         // Library entries are resolved by the server, which already holds the
         // encode for anything used before. Only a first-time vibe spends the
         // 2 Anlas here; everything else is a file read.
+        // On a model with no reference support (V5), skip resolving too:
+        // the server encodes first-time vibes during resolve, and that spend
+        // would buy images nothing here.
         let libraryForm = first;
-        if (first.libraryReferenceIds.length > 0) {
+        if (
+          first.libraryReferenceIds.length > 0 &&
+          supportsReferenceImages(first.model)
+        ) {
           try {
             const resolved = await resolveReferences(first.libraryReferenceIds);
             const dropped = first.libraryReferenceIds.length - resolved.length;

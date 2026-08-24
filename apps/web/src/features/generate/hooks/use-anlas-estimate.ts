@@ -8,7 +8,7 @@ import { useSettings } from "@/features/settings/hooks/queries";
 import { useT } from "@/i18n/provider";
 
 import { estimateAnlas } from "../lib/api";
-import { supportsReferences } from "../lib/build-request";
+import { supportsReferences, supportsVibes } from "../lib/build-request";
 import type { FormState } from "../types/generate";
 
 /**
@@ -29,11 +29,14 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
     const found = references.find((entry) => entry.id === id);
     return found && found.kind === form.referenceMode ? [found] : [];
   });
-  const libraryVibes = form.referenceMode === "vibe" ? picked.length : 0;
-  const libraryUncached =
-    form.referenceMode === "vibe"
-      ? picked.filter((entry) => entry.encodedAt === null).length
-      : 0;
+  // On a model with no vibe support (V5) nothing vibe-related is sent or
+  // encoded, so none of it may reach the figure on the button.
+  const vibesActive =
+    form.referenceMode === "vibe" && supportsVibes(form.model);
+  const libraryVibes = vibesActive ? picked.length : 0;
+  const libraryUncached = vibesActive
+    ? picked.filter((entry) => entry.encodedAt === null).length
+    : 0;
   const libraryReferences =
     form.referenceMode === "reference" ? picked.length : 0;
   const mode = settings?.generationMode ?? "queue";
@@ -49,10 +52,8 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
       // A batch run covers several scenes, so the number of images is not
       // form.nSamples but scenes x nSamples. The caller knows the scene count.
       nSamples: imageCount ?? form.nSamples,
-      vibeCount:
-        form.referenceMode === "vibe" ? form.vibes.length + libraryVibes : 0,
-      uncachedVibeCount:
-        form.referenceMode === "vibe" ? form.vibes.length + libraryUncached : 0,
+      vibeCount: vibesActive ? form.vibes.length + libraryVibes : 0,
+      uncachedVibeCount: vibesActive ? form.vibes.length + libraryUncached : 0,
       referenceCount:
         form.referenceMode === "reference" && supportsReferences(form.model)
           ? form.references.length + libraryReferences
@@ -68,6 +69,7 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
       form.nSamples,
       imageCount,
       form.referenceMode,
+      vibesActive,
       form.vibes.length,
       form.references.length,
       libraryVibes,

@@ -97,6 +97,10 @@ export const AREA_COEFFICIENT = 2.951823174884865e-6;
 export const STEP_AREA_COEFFICIENT = 5.753298233447344e-7;
 export const SMEA_MULTIPLIER = 1.2;
 export const SMEA_DYN_MULTIPLIER = 1.4;
+// V5 bills ~30% over the V4 curve. No official formula is published;
+// ceil(v4BaseCost * 1.3) matches the measured 28-step per-image costs
+// (11 / 26 / 39 for small / normal / large, where V4 pays 8 / 20 / 30).
+export const V5_COST_MULTIPLIER = 1.3;
 export const MAX_PER_IMAGE_ANLAS = 140;
 export const LIGHTWEIGHT_OPUS_MAX_PIXELS = 1_048_576;
 export const LIGHTWEIGHT_OPUS_MAX_STEPS = 28;

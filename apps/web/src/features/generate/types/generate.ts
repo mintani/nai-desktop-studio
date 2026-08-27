@@ -19,11 +19,20 @@ export type Sampler = (typeof SAMPLER_OPTIONS)[number];
 export type NoiseSchedule = (typeof NOISE_SCHEDULE_OPTIONS)[number];
 export type UcPreset = (typeof UC_PRESET_OPTIONS)[number]["value"];
 
+/**
+ * A free placement on the frame, in 0-1 fractions of its width and height.
+ * Only V5 models take it as-is; older models snap it to the 5x5 grid.
+ */
+export type PlacementPoint = { x: number; y: number };
+
 export type CharacterData = {
   prompt: string;
   negativePrompt: string;
-  /** A1..E5 placement preset. null sends no position and lets NovelAI decide. */
-  position: string | null;
+  /**
+   * A1..E5 placement preset or a free point (V5). null sends no position and
+   * lets NovelAI decide.
+   */
+  position: string | PlacementPoint | null;
   /** Prepended to this character's caption at send time. Null adds nothing. */
   gender: CharacterGender | null;
   enabled: boolean;
@@ -89,7 +98,7 @@ export type GenerateRequestBody = {
   characters?: {
     prompt: string;
     negative_prompt?: string;
-    position?: string;
+    position?: string | PlacementPoint;
   }[];
   i2i?: {
     image: string;

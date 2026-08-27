@@ -1,4 +1,5 @@
 import type { FormState, GenerateRequestBody } from "../types/generate";
+import { resolvePlacement } from "./placement";
 
 /**
  * An encoded vibe. Built once at the start of the batch and reused for every
@@ -100,8 +101,11 @@ export function buildGenerateRequest(
             ? { negative_prompt: character.negativePrompt.trim() }
             : {}),
           // Don't send it when no position is set (sending it turns on
-          // use_coords).
-          ...(character.position ? { position: character.position } : {}),
+          // use_coords). A free point snaps to its grid cell for models that
+          // only know the grid.
+          ...(character.position
+            ? { position: resolvePlacement(character.position, form.model) }
+            : {}),
         }))
     : undefined;
 

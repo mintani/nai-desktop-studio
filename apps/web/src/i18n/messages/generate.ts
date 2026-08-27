@@ -94,10 +94,13 @@ const en = {
   "generate.placement.label": "Placement",
   "generate.placement.hint":
     "Click a cell to place them. The next character takes over after that.",
+  "generate.placement.hintFree":
+    "Click anywhere on the frame to place them. The next character takes over after that.",
   "generate.placement.hintEmpty": "Add a character to place it.",
   "generate.placement.none": "Anywhere",
   "generate.placement.clear": "Take off the frame",
   "generate.placement.cell": "Place “{name}” at {cell}",
+  "generate.placement.point": "Place “{name}” where you click",
 
   "generate.picker.title": "Choose characters",
   "generate.picker.description":
@@ -306,10 +309,13 @@ const ja: Record<keyof typeof en, string> = {
   "generate.placement.label": "配置",
   "generate.placement.hint":
     "セルを押すと配置します。そのあとは次のキャラクターに移ります。",
+  "generate.placement.hintFree":
+    "フレームの好きな位置を押すと配置します。そのあとは次のキャラクターに移ります。",
   "generate.placement.hintEmpty": "キャラクターを追加すると配置できます。",
   "generate.placement.none": "指定なし",
   "generate.placement.clear": "位置を外す",
   "generate.placement.cell": "「{name}」を {cell} に配置",
+  "generate.placement.point": "「{name}」を押した位置に配置",
 
   "generate.picker.title": "キャラクターを選択",
   "generate.picker.description":

@@ -47,6 +47,8 @@ type Props = {
   onActiveChange: (id: string) => void;
   /** width / height of the image being made, so the frame matches it. */
   aspect: number;
+  /** V5 places anywhere on the frame; older models use the 5x5 grid. */
+  freeform: boolean;
   /** Saves a subject change back to the character record. */
   onCharacterChange: (character: Character) => void;
   /** Opens the character manager, so a missing character can be added here. */
@@ -71,6 +73,7 @@ export function CharacterPickerDialog({
   activeId,
   onActiveChange,
   aspect,
+  freeform,
   onCharacterChange,
   onManage,
 }: Props) {
@@ -290,6 +293,7 @@ export function CharacterPickerDialog({
                       };
                     })}
                     aspect={aspect}
+                    freeform={freeform}
                     activeId={activeId}
                     onActiveChange={onActiveChange}
                     onPositionChange={(id, position) =>
@@ -308,6 +312,7 @@ export function CharacterPickerDialog({
                   onActiveChange={onActiveChange}
                   onPickedChange={onPickedChange}
                   onCharacterChange={onCharacterChange}
+                  freeform={freeform}
                 />
               </>
             )}

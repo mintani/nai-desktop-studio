@@ -95,8 +95,23 @@ function resolveAction(body: GenerateImageBody | GenerateImageStreamBody) {
   return "generate";
 }
 
-function resolveApiModel(body: GenerateImageBody | GenerateImageStreamBody) {
+/**
+ * The model family a request actually runs on. V5 Curated has no inpainting
+ * model yet, so the official app routes its inpaints to V4.5 Curated; that
+ * request then has to follow V4.5 rules too (params_version, no transparency).
+ */
+function resolveEffectiveModel(
+  body: GenerateImageBody | GenerateImageStreamBody
+) {
   const model = resolveModel(body.model);
+  if (body.inpaint && model === "nai-diffusion-5-curated") {
+    return "nai-diffusion-4-5-curated";
+  }
+  return model;
+}
+
+function resolveApiModel(body: GenerateImageBody | GenerateImageStreamBody) {
+  const model = resolveEffectiveModel(body);
   return body.inpaint ? `${model}-inpainting` : model;
 }
 
@@ -113,6 +128,7 @@ export async function buildGeneratePayload(
   encodeVibe: (request: EncodeVibeBody) => Promise<string>
 ) {
   const model = resolveModel(body.model);
+  const effectiveModel = resolveEffectiveModel(body);
   const { width, height } = resolveSize(body.size);
   const prompt = resolvePrompt(body);
   const negativePrompt = resolveNegativePrompt(body);
@@ -137,9 +153,11 @@ export async function buildGeneratePayload(
   if (body.controlnet && isV5Model(model)) {
     throw new Error("Vibe transfer is not supported for V5 models");
   }
+  // Checked against the effective model: V5 Curated inpaints really run on
+  // V4.5 Curated, which does not take the transparency parameters.
   if (
     (body.straight_alpha || body.tag_hint_transparent_background) &&
-    !isV5Model(model)
+    !isV5Model(effectiveModel)
   ) {
     throw new Error(
       "straight_alpha and tag_hint_transparent_background are only supported for V5 models"
@@ -203,7 +221,7 @@ export async function buildGeneratePayload(
     model: resolveApiModel(body),
     use_new_shared_trial: true,
     parameters: {
-      params_version: isV5Model(model) ? 4 : 3,
+      params_version: isV5Model(effectiveModel) ? 4 : 3,
       legacy: false,
       legacy_v3_extend: false,
       deliberate_euler_ancestral_bug: false,

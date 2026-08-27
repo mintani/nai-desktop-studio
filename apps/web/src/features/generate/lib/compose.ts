@@ -8,8 +8,8 @@ import {
 } from "@/features/situations/lib/template";
 import {
   assembleStyledPrompt,
-  NEGATIVE_GROUP,
-  QUALITY_GROUP,
+  negativeGroup,
+  qualityGroup,
 } from "@/features/styles/lib/style-prompt";
 import type { Style } from "@/features/styles/types/style";
 
@@ -92,7 +92,7 @@ export function composeTemplatePrompt(
               joinParts([entry.gender ?? "", entry.prompt])
             ),
           ]),
-      QUALITY_GROUP,
+      qualityGroup(model),
       style?.styleTag ?? "",
       style?.promptPosition ?? "after_quality"
     ),
@@ -103,7 +103,7 @@ export function composeTemplatePrompt(
             baseNegative,
             ...entries.map((entry) => entry.negativePrompt),
           ]),
-      NEGATIVE_GROUP,
+      negativeGroup(model),
       style?.negativeTag ?? "",
       style?.negativePosition ?? "after_quality"
     ),

@@ -3,6 +3,7 @@ import {
   SIZE_PRESETS,
   UC_PRESET_INT,
   UC_PRESET_TEXT,
+  V5_UC_PRESET_TEXT,
 } from "./constants";
 import { isV4Model, isV45Model, isV5Model } from "./schemas";
 import type {
@@ -82,11 +83,15 @@ function buildCharacterPrompts(characters: GenerateImageBody["characters"]) {
 }
 
 function resolvePrompt(body: GenerateImageBody) {
-  return body.quality === false ? body.prompt : `${body.prompt}${QUALITY_TAGS}`;
+  if (body.quality === false) return body.prompt;
+  return `${body.prompt}${QUALITY_TAGS[resolveModel(body.model)]}`;
 }
 
 function resolveNegativePrompt(body: GenerateImageBody) {
-  return `${body.negative_prompt ?? ""}${UC_PRESET_TEXT[body.uc_preset ?? "light"]}`;
+  const presets = isV5Model(resolveModel(body.model))
+    ? V5_UC_PRESET_TEXT
+    : UC_PRESET_TEXT;
+  return `${body.negative_prompt ?? ""}${presets[body.uc_preset ?? "light"]}`;
 }
 
 function resolveAction(body: GenerateImageBody | GenerateImageStreamBody) {

@@ -47,6 +47,22 @@ function characterCaption(gender: string | null, prompt: string) {
     .join(", ");
 }
 
+/**
+ * The official V5 frontend prepares the Text: block (text rendering) from
+ * "quoted" prompt text; V4.5 needs the block written by hand. A hand-written
+ * block turns the automation off — that is the official behavior too.
+ */
+function withAutoTextBlock(prompt: string, model: string) {
+  if (!model.startsWith("nai-diffusion-5")) return prompt;
+  if (/(?:^|\n)Text:/.test(prompt)) return prompt;
+  const texts = [...prompt.matchAll(/"([^"\n]+)"/g)]
+    .map((match) => (match[1] ?? "").trim())
+    .filter(Boolean);
+  if (texts.length === 0) return prompt;
+  // Multiple pieces of text are separated by an empty line, per the docs.
+  return `${prompt}\nText: ${texts.join("\n\n")}`;
+}
+
 function parseSeed(value: string) {
   const trimmed = value.trim();
   // An empty field means "random". Number("") is 0, so without this guard we
@@ -101,7 +117,7 @@ export function buildGenerateRequest(
     supportsReferences(form.model);
 
   return {
-    prompt: form.prompt.trim(),
+    prompt: withAutoTextBlock(form.prompt.trim(), form.model),
     ...(form.negativePrompt.trim()
       ? { negative_prompt: form.negativePrompt.trim() }
       : {}),

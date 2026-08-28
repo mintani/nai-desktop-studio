@@ -9,10 +9,12 @@ import {
   SMEA_DYN_MULTIPLIER,
   SMEA_MULTIPLIER,
   STEP_AREA_COEFFICIENT,
+  V5_COST_MULTIPLIER,
   VIBE_EXTRA_ANLAS,
   VIBE_FREE_COUNT,
 } from "./constants";
 import { buildGeneratePayload, resolveModel, resolveSize } from "./payload";
+import { isV5Model } from "./schemas";
 import { iterateStreamFrames } from "./sse";
 import type { StreamFrame } from "./sse";
 import { extractAllFilesFromZip, isZipPayload } from "./zip";
@@ -184,8 +186,9 @@ export function estimateAnlas(body: EstimateAnlasBody) {
   const baseCost = Math.ceil(
     AREA_COEFFICIENT * area + STEP_AREA_COEFFICIENT * area * steps
   );
+  const versionMultiplier = isV5Model(model) ? V5_COST_MULTIPLIER : 1;
   const perImageAnlas = Math.max(
-    Math.ceil(baseCost * multiplier * strengthFactor),
+    Math.ceil(baseCost * versionMultiplier * multiplier * strengthFactor),
     2
   );
 
@@ -198,8 +201,13 @@ export function estimateAnlas(body: EstimateAnlasBody) {
   // Vibe surcharges exist on V4/V4.5 only. V3 predates vibes as billed here,
   // and V5 has no vibe transfer at all, so the prefix check excludes both.
   const supportsV4Costs = model.startsWith("nai-diffusion-4");
+  // V5 sits outside Opus unlimited (it is battery-metered instead), so the
+  // free-sample discount never applies there. The estimate is what a
+  // generation costs once the battery is empty; the battery itself is not
+  // visible to the API.
   const opusDiscountApplied = Boolean(
     body.is_opus &&
+    !isV5Model(model) &&
     area <= LIGHTWEIGHT_OPUS_MAX_PIXELS &&
     steps <= LIGHTWEIGHT_OPUS_MAX_STEPS
   );

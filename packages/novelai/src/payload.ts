@@ -82,9 +82,32 @@ function buildCharacterPrompts(characters: GenerateImageBody["characters"]) {
   }));
 }
 
+/**
+ * Where the prompt's Text: block starts, or -1. Text rendering reads
+ * everything from a line beginning with "Text:" to the end as rendered text.
+ */
+function findTextBlock(prompt: string) {
+  const match = /(?:^|\n)Text:/.exec(prompt);
+  if (!match) return -1;
+  return match.index + (match[0].startsWith("\n") ? 1 : 0);
+}
+
+/**
+ * Quality tags go at the end of the tag part, not the end of the prompt:
+ * appended after a Text: block they would be drawn into the image as text.
+ */
 function resolvePrompt(body: GenerateImageBody) {
   if (body.quality === false) return body.prompt;
-  return `${body.prompt}${QUALITY_TAGS[resolveModel(body.model)]}`;
+  const quality = QUALITY_TAGS[resolveModel(body.model)];
+  const start = findTextBlock(body.prompt);
+  if (start === -1) return `${body.prompt}${quality}`;
+  const tags = body.prompt.slice(0, start).trimEnd();
+  const textBlock = body.prompt.slice(start);
+  // Every entry in QUALITY_TAGS begins with ", ", which has nothing to attach
+  // to when the prompt is only a Text: block.
+  return tags
+    ? `${tags}${quality}\n${textBlock}`
+    : `${quality.slice(2)}\n${textBlock}`;
 }
 
 function resolveNegativePrompt(body: GenerateImageBody) {

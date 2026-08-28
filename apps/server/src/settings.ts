@@ -9,7 +9,9 @@ import type { ImageModel } from "@nai-desktop-studio/novelai";
 import { onInvalid } from "./http";
 import { configDir, defaultOutputDir } from "./paths";
 
-const DEFAULT_MODEL: ImageModel = "nai-diffusion-4-5-full";
+// V5 is the current mainline model, so a fresh install starts there. Anyone
+// preferring another model saves it once from the settings screen.
+const DEFAULT_MODEL: ImageModel = "nai-diffusion-5-full";
 const SETTINGS_FILE = "settings.json";
 
 /** Settings as stored on disk. Every field is optional. */

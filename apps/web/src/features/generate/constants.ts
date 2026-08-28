@@ -87,7 +87,9 @@ export const DEFAULT_CHARACTER = {
 export const INITIAL_FORM: FormState = {
   prompt: "",
   negativePrompt: "",
-  model: "nai-diffusion-4-5-full",
+  // Matches the server's DEFAULT_MODEL; the saved default replaces it the
+  // moment settings arrive (generate-workspace).
+  model: "nai-diffusion-5-full",
   size: "portrait",
   sampler: "k_euler_ancestral",
   noiseSchedule: "karras",

@@ -46,6 +46,11 @@ const en = {
   "settings.output.saved": "Output folder updated",
   "settings.output.errorSave": "Could not save",
 
+  "settings.model.label": "Default model",
+  "settings.model.saved": "Default model updated",
+  "settings.model.help":
+    "The model already selected when the app opens. Each run can still switch models freely.",
+
   "settings.sections.label": "Sections open by default",
   "settings.sections.help":
     "Which parts of the generate panel are already expanded when the app opens.",
@@ -98,6 +103,11 @@ const ja: Record<keyof typeof en, string> = {
   "settings.output.errorEmpty": "保存先を入力してください",
   "settings.output.saved": "保存先を変更しました",
   "settings.output.errorSave": "保存に失敗しました",
+
+  "settings.model.label": "デフォルトモデル",
+  "settings.model.saved": "デフォルトモデルを変更しました",
+  "settings.model.help":
+    "起動した時点で選択されているモデルです。生成ごとの切り替えは今までどおりできます。",
 
   "settings.sections.label": "最初から開くセクション",
   "settings.sections.help":

@@ -11,6 +11,7 @@ import { TagAutocompleteTextarea } from "@/components/tag-autocomplete/tag-autoc
 import { useT } from "@/i18n/provider";
 
 import { DEFAULT_CHARACTER } from "../constants";
+import { describePosition } from "../lib/placement";
 import type { CharacterData, FormState } from "../types/generate";
 import { CharacterPlacementGrid } from "./character-placement-grid";
 
@@ -19,6 +20,8 @@ type Props = {
   update: (patch: Partial<FormState>) => void;
   /** width / height of the image being made, so the frame matches it. */
   aspect: number;
+  /** V5 places anywhere on the frame; older models use the 5x5 grid. */
+  freeform: boolean;
 };
 
 /** The first tag of a character's prompt, which is usually enough to tell it apart. */
@@ -26,7 +29,12 @@ function firstTag(prompt: string) {
   return prompt.split(",")[0]?.trim() ?? "";
 }
 
-export function CharactersSection({ characters, update, aspect }: Props) {
+export function CharactersSection({
+  characters,
+  update,
+  aspect,
+  freeform,
+}: Props) {
   const t = useT();
   // Which character the grid places. Kept as an index because a form character
   // has no id — it is only its slot in the list.
@@ -56,6 +64,7 @@ export function CharactersSection({ characters, update, aspect }: Props) {
               position: character.position,
             }))}
             aspect={aspect}
+            freeform={freeform}
             activeId={String(active)}
             onActiveChange={(id) => setActiveIndex(Number(id))}
             onPositionChange={(id, position) =>
@@ -81,7 +90,7 @@ export function CharactersSection({ characters, update, aspect }: Props) {
               {t("generate.character.n", { index: index + 1 })}
               {character.position && (
                 <span className="font-mono tabular-nums">
-                  {character.position}
+                  {describePosition(character.position, freeform)}
                 </span>
               )}
             </span>

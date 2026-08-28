@@ -9,6 +9,7 @@ import { CharacterThumbnail } from "@/features/characters/components/character-t
 import type { Character } from "@/features/characters/lib/template";
 import { useT } from "@/i18n/provider";
 
+import { describePosition } from "../lib/placement";
 import type { TemplateCharacterPick } from "../types/template";
 
 type Props = {
@@ -28,6 +29,8 @@ type Props = {
    * through rather than kept as a per-run override that a reload would lose.
    */
   onCharacterChange?: (character: Character) => void;
+  /** V5 places anywhere on the frame; older models use the 5x5 grid. */
+  freeform: boolean;
 };
 
 /**
@@ -47,6 +50,7 @@ export function SelectedCharacterList({
   onActiveChange,
   onPickedChange,
   onCharacterChange,
+  freeform,
 }: Props) {
   const t = useT();
   const selectable = onActiveChange !== undefined;
@@ -112,7 +116,7 @@ export function SelectedCharacterList({
                 grid already shows who is on it. */}
               {entry.position && (
                 <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
-                  {entry.position}
+                  {describePosition(entry.position, freeform)}
                 </span>
               )}
               <Button

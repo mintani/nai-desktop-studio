@@ -19,6 +19,7 @@ import { useT } from "@/i18n/provider";
 import { aspectOfSize } from "../constants";
 import type { PanelSectionId } from "../constants";
 import { supportsCharacters as modelSupportsCharacters } from "../lib/build-request";
+import { supportsFreePlacement } from "../lib/placement";
 import type { FormState, GenerationMode } from "../types/generate";
 import type { TemplateSelection } from "../types/template";
 import { CharactersSection } from "./characters-section";
@@ -163,6 +164,7 @@ export function GeneratePanel({
                 onSelectionChange={onTemplateSelectionChange}
                 perScene={form.nSamples}
                 aspect={aspectOfSize(form.size)}
+                freeform={supportsFreePlacement(form.model)}
               />
             </Section>
           ) : (
@@ -188,6 +190,7 @@ export function GeneratePanel({
                 characters={form.characters}
                 update={update}
                 aspect={aspectOfSize(form.size)}
+                freeform={supportsFreePlacement(form.model)}
               />
             </Section>
           )}

@@ -1,8 +1,10 @@
+import type { PlacementPoint } from "./generate";
+
 /** A character picked for the next generation, and where it stands. */
 export type TemplateCharacterPick = {
   id: string;
-  /** A1..E5, or null to let NovelAI choose. */
-  position: string | null;
+  /** A1..E5 or a free point (V5), or null to let NovelAI choose. */
+  position: string | PlacementPoint | null;
 };
 
 /**

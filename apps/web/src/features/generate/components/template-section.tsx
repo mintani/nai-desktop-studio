@@ -31,6 +31,8 @@ type Props = {
   perScene: number;
   /** width / height of the image being made, passed to the placement frame. */
   aspect: number;
+  /** V5 places anywhere on the frame; older models use the 5x5 grid. */
+  freeform: boolean;
 };
 
 type Manager = "situations" | "characters" | "styles";
@@ -85,6 +87,7 @@ export function TemplateSection({
   onSelectionChange,
   perScene,
   aspect,
+  freeform,
 }: Props) {
   const t = useT();
   const { situations } = useSituations();
@@ -209,6 +212,7 @@ export function TemplateSection({
             picked={selection.characters}
             characters={characters}
             onPickedChange={setPicked}
+            freeform={freeform}
           />
         )}
       </div>
@@ -261,6 +265,7 @@ export function TemplateSection({
         activeId={effectiveActiveId}
         onActiveChange={setActiveId}
         aspect={aspect}
+        freeform={freeform}
         onCharacterChange={(character) =>
           save.mutate({ ...character, updatedAt: new Date().toISOString() })
         }

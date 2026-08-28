@@ -8,13 +8,15 @@ import { assetUrl } from "@/features/library/collections";
 import { useT } from "@/i18n/provider";
 
 import { POSITION_GRID } from "../constants";
+import { cellCenter, describePosition, snapToCell } from "../lib/placement";
+import type { PlacementPoint } from "../types/generate";
 
 export type PlacementEntry = {
   id: string;
   /** Names the one being placed. Falls back to the cell badge when there is no picture. */
   label: string;
-  /** A1..E5, or null to let NovelAI choose. */
-  position: string | null;
+  /** A1..E5 or a free point (V5), or null to let NovelAI choose. */
+  position: string | PlacementPoint | null;
   /** The character's picture, when it has one. Hand-typed characters do not. */
   imagePath?: string | null;
 };
@@ -23,9 +25,14 @@ type Props = {
   entries: PlacementEntry[];
   activeId: string | null;
   onActiveChange: (id: string) => void;
-  onPositionChange: (id: string, position: string | null) => void;
+  onPositionChange: (
+    id: string,
+    position: string | PlacementPoint | null
+  ) => void;
   /** width / height of the image being made. The frame takes the same shape. */
   aspect: number;
+  /** V5 places anywhere on the frame; the grid is for models that cannot. */
+  freeform: boolean;
   className?: string;
 };
 
@@ -43,6 +50,18 @@ function frameWidth(aspect: number) {
   if (aspect >= 1.2) return "max-w-72";
   if (aspect <= 0.85) return "max-w-52";
   return "max-w-60";
+}
+
+/** Finer than anyone can aim, and it keeps the request numbers readable. */
+function roundCoordinate(value: number) {
+  return Math.round(Math.min(Math.max(value, 0), 1) * 100) / 100;
+}
+
+/** What a grid surface treats a position as: free points snap to their cell. */
+function cellOf(position: PlacementEntry["position"]) {
+  return position && typeof position !== "string"
+    ? snapToCell(position)
+    : position;
 }
 
 /**
@@ -69,6 +88,7 @@ export function CharacterPlacementGrid({
   onActiveChange,
   onPositionChange,
   aspect,
+  freeform,
   className,
 }: Props) {
   const t = useT();
@@ -77,7 +97,7 @@ export function CharacterPlacementGrid({
   const active = entries[activeIndex] ?? null;
   const untouched = entries.every((entry) => entry.position === null);
 
-  function place(position: string | null) {
+  function place(position: string | PlacementPoint | null) {
     if (!active) return;
     onPositionChange(active.id, position);
     const next = entries[activeIndex + 1];
@@ -99,7 +119,7 @@ export function CharacterPlacementGrid({
             {active.position ? (
               <>
                 <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
-                  {active.position}
+                  {describePosition(active.position, freeform)}
                 </span>
                 <Button
                   type="button"
@@ -128,67 +148,137 @@ export function CharacterPlacementGrid({
         )}
       </div>
 
-      {/* One bordered frame divided by hairlines, not 25 bordered boxes. A
-          viewfinder's grid is an overlay on the picture; boxes with gaps read
-          as a keypad. */}
-      <div
-        style={{ aspectRatio: aspect }}
-        className={cn(
-          "bg-muted/30 mx-auto grid w-full grid-cols-5 grid-rows-5 overflow-hidden rounded-md border",
-          frameWidth(aspect)
-        )}
-      >
-        {CELLS.map((cell, index) => {
-          const here = entries
-            .map((entry, order) => ({ entry, order }))
-            .filter(({ entry }) => entry.position === cell);
-          const isActiveCell = active?.position === cell;
-          const lastColumn = index % COLUMNS === COLUMNS - 1;
-          const lastRow = index >= CELLS.length - COLUMNS;
-
-          return (
-            <button
-              key={cell}
-              type="button"
-              disabled={!active}
-              aria-pressed={isActiveCell}
-              onClick={() => place(isActiveCell ? null : cell)}
-              title={
-                active
-                  ? t("generate.placement.cell", { name: active.label, cell })
-                  : cell
+      {freeform ? (
+        // The same frame with no cells: V5 takes the exact spot, so the frame
+        // is a surface, not a keypad. A position set on the grid before the
+        // model switch shows at its cell's center until it is placed again.
+        <div
+          style={{ aspectRatio: aspect }}
+          className={cn(
+            "bg-muted/30 relative mx-auto w-full overflow-hidden rounded-md border",
+            frameWidth(aspect)
+          )}
+        >
+          <button
+            type="button"
+            disabled={!active}
+            title={
+              active
+                ? t("generate.placement.point", { name: active.label })
+                : undefined
+            }
+            onClick={(event) => {
+              // A keyboard "click" carries no coordinates (detail 0); give it
+              // the center rather than the frame's top-left corner.
+              if (event.detail === 0) {
+                place({ x: 0.5, y: 0.5 });
+                return;
               }
-              className={cn(
-                "focus-visible:ring-ring border-border/60 relative flex items-center justify-center gap-0.5 outline-none transition-colors duration-150 ease-out focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset disabled:pointer-events-none",
-                !lastColumn && "border-r",
-                !lastRow && "border-b",
-                // The same pair as every other chosen option — secondary fill,
-                // primary edge — said with an inset ring, because the cell has
-                // no border of its own to turn.
-                isActiveCell
-                  ? "bg-secondary ring-primary z-10 ring-1 ring-inset"
-                  : "hover:bg-muted/70"
-              )}
-            >
-              {here.map(({ entry, order }) => (
+              const frame = event.currentTarget.getBoundingClientRect();
+              place({
+                x: roundCoordinate((event.clientX - frame.left) / frame.width),
+                y: roundCoordinate((event.clientY - frame.top) / frame.height),
+              });
+            }}
+            className="focus-visible:ring-ring hover:bg-muted/70 absolute inset-0 cursor-crosshair outline-none transition-colors duration-150 ease-out focus-visible:ring-1 focus-visible:ring-inset disabled:pointer-events-none"
+          >
+            <span className="sr-only">
+              {active
+                ? t("generate.placement.point", { name: active.label })
+                : ""}
+            </span>
+          </button>
+          {entries.map((entry, order) => {
+            if (!entry.position) return null;
+            const point =
+              typeof entry.position === "string"
+                ? cellCenter(entry.position)
+                : entry.position;
+            return (
+              <span
+                key={entry.id}
+                className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  left: `${point.x * 100}%`,
+                  top: `${point.y * 100}%`,
+                }}
+              >
                 <Occupant
-                  key={entry.id}
                   entry={entry}
                   index={order}
                   active={entry.id === activeId}
                 />
-              ))}
-              <span className="sr-only">{cell}</span>
-            </button>
-          );
-        })}
-      </div>
+              </span>
+            );
+          })}
+        </div>
+      ) : (
+        // One bordered frame divided by hairlines, not 25 bordered boxes. A
+        // viewfinder's grid is an overlay on the picture; boxes with gaps read
+        // as a keypad.
+        <div
+          style={{ aspectRatio: aspect }}
+          className={cn(
+            "bg-muted/30 mx-auto grid w-full grid-cols-5 grid-rows-5 overflow-hidden rounded-md border",
+            frameWidth(aspect)
+          )}
+        >
+          {CELLS.map((cell, index) => {
+            const here = entries
+              .map((entry, order) => ({ entry, order }))
+              .filter(({ entry }) => cellOf(entry.position) === cell);
+            const isActiveCell = active
+              ? cellOf(active.position) === cell
+              : false;
+            const lastColumn = index % COLUMNS === COLUMNS - 1;
+            const lastRow = index >= CELLS.length - COLUMNS;
+
+            return (
+              <button
+                key={cell}
+                type="button"
+                disabled={!active}
+                aria-pressed={isActiveCell}
+                onClick={() => place(isActiveCell ? null : cell)}
+                title={
+                  active
+                    ? t("generate.placement.cell", { name: active.label, cell })
+                    : cell
+                }
+                className={cn(
+                  "focus-visible:ring-ring border-border/60 relative flex items-center justify-center gap-0.5 outline-none transition-colors duration-150 ease-out focus-visible:z-10 focus-visible:ring-1 focus-visible:ring-inset disabled:pointer-events-none",
+                  !lastColumn && "border-r",
+                  !lastRow && "border-b",
+                  // The same pair as every other chosen option — secondary fill,
+                  // primary edge — said with an inset ring, because the cell has
+                  // no border of its own to turn.
+                  isActiveCell
+                    ? "bg-secondary ring-primary z-10 ring-1 ring-inset"
+                    : "hover:bg-muted/70"
+                )}
+              >
+                {here.map(({ entry, order }) => (
+                  <Occupant
+                    key={entry.id}
+                    entry={entry}
+                    index={order}
+                    active={entry.id === activeId}
+                  />
+                ))}
+                <span className="sr-only">{cell}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Only until the first one is placed. The auto-advance is worth saying
           once; repeating it forever turns instructions into furniture. */}
       {active && untouched && (
         <p className="text-muted-foreground/80 text-[10px] leading-snug">
-          {t("generate.placement.hint")}
+          {t(
+            freeform ? "generate.placement.hintFree" : "generate.placement.hint"
+          )}
         </p>
       )}
     </div>

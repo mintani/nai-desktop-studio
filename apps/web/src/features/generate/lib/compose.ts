@@ -14,13 +14,18 @@ import {
 import type { Style } from "@/features/styles/types/style";
 
 import { SAMPLER_OPTIONS } from "../constants";
-import type { CharacterData, FormState, Sampler } from "../types/generate";
+import type {
+  CharacterData,
+  FormState,
+  PlacementPoint,
+  Sampler,
+} from "../types/generate";
 import { supportsCharacters } from "./build-request";
 
 /** A character picked for the next generation, with where to place it. */
 export type SelectedCharacter = {
   character: Character;
-  position: string | null;
+  position: string | PlacementPoint | null;
 };
 
 /** A selection with every id already looked up in its collection. */

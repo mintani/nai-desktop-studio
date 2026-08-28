@@ -1,6 +1,7 @@
 import {
   QUALITY_TAGS,
   UC_PRESET_TEXT,
+  V5_UC_PRESET_TEXT,
 } from "@nai-desktop-studio/novelai/constants";
 
 import type { StylePromptPosition } from "../types/style";
@@ -14,8 +15,25 @@ function joinTags(parts: string[]): string {
     .join(", ");
 }
 
-export const QUALITY_GROUP = joinTags([QUALITY_TAGS]);
-export const NEGATIVE_GROUP = joinTags([UC_PRESET_TEXT.light]);
+/**
+ * The model's quality tags as a clean group. Quality tags differ per model, so
+ * the group is looked up rather than fixed; an unknown model falls back to the
+ * package default (V4.5 Full).
+ */
+export function qualityGroup(model: string): string {
+  const tags =
+    QUALITY_TAGS[model as keyof typeof QUALITY_TAGS] ??
+    QUALITY_TAGS["nai-diffusion-4-5-full"];
+  return joinTags([tags]);
+}
+
+/** The model's Light UC preset as a clean group. V5 rewrote it. */
+export function negativeGroup(model: string): string {
+  const presets = model.startsWith("nai-diffusion-5")
+    ? V5_UC_PRESET_TEXT
+    : UC_PRESET_TEXT;
+  return joinTags([presets.light]);
+}
 
 /**
  * Builds the final prompt with the quality block up front and the style tag at

@@ -2,7 +2,6 @@ export const NOVELAI_IMAGE_BASE = "https://image.novelai.net";
 // /user/subscription currently lives on the image host; api.novelai.net
 // returns 400.
 export const NOVELAI_API_BASE = "https://image.novelai.net";
-export const QUALITY_TAGS = ", very aesthetic, masterpiece, no text";
 
 export const IMAGE_MODELS = [
   "nai-diffusion-5-full",
@@ -14,6 +13,25 @@ export const IMAGE_MODELS = [
   "nai-diffusion-3",
   "nai-diffusion-3-furry",
 ] as const;
+
+/**
+ * Quality tags the official app appends per model
+ * (docs.novelai.net/en/image/qualitytags). V5 also has a lighter set behind a
+ * level picker; the quality switch here is on/off, so V5 gets the standard set.
+ */
+export const QUALITY_TAGS = {
+  "nai-diffusion-5-full": ", very aesthetic, masterpiece, no text",
+  "nai-diffusion-5-curated": ", very aesthetic, masterpiece, no text",
+  "nai-diffusion-4-5-full": ", location, very aesthetic, masterpiece, no text",
+  "nai-diffusion-4-5-curated":
+    ", location, masterpiece, no text, -0.8::feet::, rating:general",
+  "nai-diffusion-4-full": ", no text, best quality, very aesthetic, absurdres",
+  "nai-diffusion-4-curated":
+    ", rating:general, amazing quality, very aesthetic, absurdres",
+  "nai-diffusion-3":
+    ", best quality, amazing quality, very aesthetic, absurdres",
+  "nai-diffusion-3-furry": ", {best quality}, {amazing quality}",
+} as const satisfies Record<(typeof IMAGE_MODELS)[number], string>;
 
 export const SIZE_PRESETS = {
   portrait: { width: 832, height: 1216 },
@@ -33,6 +51,16 @@ export const UC_PRESET_TEXT = {
   human_focus:
     ", lowres, artistic error, film grain, scan artifacts, worst quality, bad quality, jpeg artifacts, very displeasing, chromatic aberration, dithering, halftone, screentone, multiple views, logo, too many watermarks, negative space, blank page, @_@, mismatched pupils, glowing eyes, bad anatomy, ",
   none: "",
+} as const;
+
+/**
+ * V5 rewrote the Light preset (docs.novelai.net/en/image/undesiredcontent);
+ * the other presets match V4.5, so only the difference lives here.
+ */
+export const V5_UC_PRESET_TEXT = {
+  ...UC_PRESET_TEXT,
+  light:
+    ", lowres, bad hands, bad anatomy, artistic error, sepia, white haze, worst quality, very displeasing, jpeg artifacts, 0::ai-generated::, ",
 } as const;
 
 export const UC_PRESET_INT = {

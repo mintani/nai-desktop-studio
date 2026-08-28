@@ -9,6 +9,7 @@ import type { MessageKey } from "@/i18n/messages";
 import { useT } from "@/i18n/provider";
 
 import { useCharacters } from "@/features/characters/hooks/queries";
+import { useReferences } from "@/features/reference-library/hooks/queries";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
 import { useSettings } from "@/features/settings/hooks/queries";
 import { useSituations } from "@/features/situations/hooks/queries";
@@ -19,8 +20,10 @@ import { INITIAL_FORM, MODEL_OPTIONS } from "../constants";
 import { useAnlasEstimate } from "../hooks/use-anlas-estimate";
 import { useGenerationEngine } from "../hooks/use-generation-engine";
 import { useImageLibrary } from "../hooks/use-image-library";
-import { useReferenceSpend } from "../hooks/use-reference-spend";
 import { supportsReferences, supportsVibes } from "../lib/build-request";
+import { assessReferenceSpend } from "../lib/assess-spend";
+import { pickedLibraryReferences } from "../lib/library-references";
+import { fetchVibeCacheStatus, hashVibeImage } from "../lib/vibe-cache";
 import {
   COMPOSED_PROMPT_FLAGS,
   composeTemplateJobs,
@@ -45,6 +48,7 @@ import type { GeneratedImage, GenerationSlot } from "../types/image";
 import { EMPTY_TEMPLATE_SELECTION } from "../types/template";
 import type { TemplateSelection } from "../types/template";
 import { AnlasConfirmDialog } from "./anlas-confirm-dialog";
+import type { ReferenceCost } from "./anlas-confirm-dialog";
 import { GeneratePanel } from "./generate-panel";
 import { HistoryFooter } from "./history-footer";
 import { ImageGrid } from "./image-grid";
@@ -141,11 +145,12 @@ export function GenerateWorkspace() {
     mode === "batch"
       ? templateSelection.situationIds.length * form.nSamples
       : form.nSamples;
-  const { anlasText, referenceCost } = useAnlasEstimate(form, plannedImages);
+  const { anlasText } = useAnlasEstimate(form, plannedImages);
   // Jobs waiting on the Anlas confirmation. Held rather than rebuilt on
   // confirm so the run is exactly what the figures were quoted for.
   const [pendingJobs, setPendingJobs] = useState<GenerationJob[] | null>(null);
-  const spendsOnReferences = useReferenceSpend(form);
+  const [pendingCost, setPendingCost] = useState<ReferenceCost | null>(null);
+  const { references: libraryReferences } = useReferences();
 
   const update = useCallback((patch: Partial<FormState>) => {
     setForm((current) => {
@@ -238,10 +243,10 @@ export function GenerateWorkspace() {
       loaded.references.length > 0 && supportsReferences(model);
     // A style holding both kinds cannot send both, so the panel's current mode
     // decides. With only one kind, that kind wins.
-    const useReferences =
+    const preferReferences =
       canUseReferences &&
       (loaded.vibes.length === 0 || form.referenceMode === "reference");
-    if (useReferences) {
+    if (preferReferences) {
       return {
         referenceMode: "reference" as const,
         references: loaded.references,
@@ -260,14 +265,60 @@ export function GenerateWorkspace() {
     return {};
   }
 
+  /**
+   * What this exact run spends on reference images.
+   *
+   * Judged on the jobs, not the panel: in batch mode a style's vibes only
+   * join the form while the jobs are being built, and judging the panel let
+   * them slip past the confirmation entirely. The uncached count comes from
+   * the server's encode cache, so a vibe that has been paid for once — from
+   * any source — is not counted again.
+   */
+  async function assessJobs(jobs: GenerationJob[]): Promise<ReferenceCost> {
+    const jobForm = jobs[0]?.form ?? form;
+    const picked = pickedLibraryReferences(jobForm, libraryReferences);
+    const imageCount = jobs.reduce((sum, job) => sum + job.form.nSamples, 0);
+
+    // Library vibes keep their own per-entry cache; encodedAt says which side
+    // of it they are on without a round trip.
+    const uncachedLibrary = picked.filter(
+      (entry) => entry.encodedAt === null
+    ).length;
+
+    let uncachedDirect = 0;
+    if (jobForm.referenceMode === "vibe" && jobForm.vibes.length > 0) {
+      const items = await Promise.all(
+        jobForm.vibes.map(async (vibe) => ({
+          sha256: await hashVibeImage(vibe.imageBase64),
+          infoExtracted: vibe.infoExtracted,
+          model: jobForm.model,
+        }))
+      );
+      const cached = await fetchVibeCacheStatus(items);
+      uncachedDirect = cached.filter((hit) => !hit).length;
+    }
+
+    return assessReferenceSpend({
+      model: jobForm.model,
+      referenceMode: jobForm.referenceMode,
+      vibeCount: jobForm.vibes.length + picked.length,
+      uncachedVibeCount: uncachedDirect + uncachedLibrary,
+      preciseCount: jobForm.references.length + picked.length,
+      imageCount,
+    });
+  }
+
   async function handleGenerate() {
     setViewedBatch(null);
     setSelectedIds([]);
     const jobs = await buildJobs();
     if (jobs.length === 0) return;
     // Reference images are the part that is spent on top and cannot be taken
-    // back, so a run that pays for them stops here first.
-    if (spendsOnReferences) {
+    // back, so a run that pays for them stops here first. A run that spends
+    // nothing — everything cached, or nothing sent — goes straight through.
+    const cost = await assessJobs(jobs);
+    if (cost.total > 0) {
+      setPendingCost(cost);
       setPendingJobs(jobs);
       return;
     }
@@ -472,11 +523,15 @@ export function GenerateWorkspace() {
 
       <AnlasConfirmDialog
         open={pendingJobs !== null}
-        cost={referenceCost}
-        onCancel={() => setPendingJobs(null)}
+        cost={pendingCost}
+        onCancel={() => {
+          setPendingJobs(null);
+          setPendingCost(null);
+        }}
         onConfirm={() => {
           const jobs = pendingJobs;
           setPendingJobs(null);
+          setPendingCost(null);
           if (jobs) void engine.generate(jobs);
         }}
       />

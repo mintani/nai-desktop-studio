@@ -8,6 +8,7 @@ import { createNovelAIClient } from "@nai-desktop-studio/novelai";
 import type { EncodeVibeBody } from "@nai-desktop-studio/novelai";
 import { onInvalid } from "./http";
 import { configDir } from "./paths";
+import { cachedEncodeVibe } from "./vibe-cache";
 import { getApiKey } from "./settings";
 
 /**
@@ -354,10 +355,14 @@ export const referencesRouter = new Hono()
       if (!apiKey) {
         return c.json({ error: "NovelAI API key is not configured" }, 428);
       }
+      // The content-addressed cache sits in front here too, so a vibe already
+      // paid for from the panel is a file read for the library, and the other
+      // way round.
       const { encodeVibe } = createNovelAIClient({
         apiKey,
         imageBase: env.NOVELAI_IMAGE_BASE,
         apiBase: env.NOVELAI_API_BASE,
+        wrapEncodeVibe: cachedEncodeVibe,
       });
 
       // Sequential: each miss is a paid network call, and doing them at once

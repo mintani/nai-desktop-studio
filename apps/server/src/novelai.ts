@@ -14,6 +14,7 @@ import {
 import type { GenerationMeta, StreamFrame } from "@nai-desktop-studio/novelai";
 import { onInvalid } from "./http";
 import { getApiKey } from "./settings";
+import { cachedEncodeVibe, isVibeCached } from "./vibe-cache";
 import { saveImage, toImageResponse } from "./library";
 
 const NO_KEY_MESSAGE = "NovelAI API key is not configured";
@@ -39,8 +40,24 @@ async function getClient() {
     apiKey,
     imageBase: env.NOVELAI_IMAGE_BASE,
     apiBase: env.NOVELAI_API_BASE,
+    // Generation-time encodes go through the content-addressed cache, so the
+    // same image at the same settings is paid for exactly once.
+    wrapEncodeVibe: cachedEncodeVibe,
   });
 }
+
+const vibeCacheStatusSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        sha256: z.string().regex(/^[0-9a-f]{64}$/),
+        infoExtracted: z.number().min(0).max(1),
+        model: z.string().min(1).max(100),
+      })
+    )
+    .min(1)
+    .max(64),
+});
 
 function formatFromContentType(contentType: string): "png" | "webp" {
   return contentType.includes("webp") ? "webp" : "png";
@@ -163,6 +180,23 @@ export const novelaiRouter = new Hono()
           400
         );
       }
+    }
+  )
+  /**
+   * Which of these vibes already have a cached encode. The generate panel asks
+   * before a run, so its Anlas warning counts only what will actually be paid.
+   */
+  .post(
+    "/vibe-cache/status",
+    zValidator("json", vibeCacheStatusSchema, onInvalid),
+    async (c) => {
+      const { items } = c.req.valid("json");
+      const cached = await Promise.all(
+        items.map((item) =>
+          isVibeCached(item.sha256, item.infoExtracted, item.model)
+        )
+      );
+      return c.json({ cached });
     }
   )
   .post(

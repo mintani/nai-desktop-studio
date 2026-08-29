@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import { LabeledSlider } from "@/components/labeled-slider";
 import { SegmentedControl } from "@/components/segmented-control";
+import { ReferenceManagerDialog } from "@/features/reference-library/components/reference-manager-dialog";
 import { ReferencePickerDialog } from "@/features/reference-library/components/reference-picker-dialog";
 import { referenceImageUrl } from "@/features/reference-library/lib/api";
 import { useReferences } from "@/features/reference-library/hooks/queries";
@@ -316,6 +317,7 @@ type Props = {
  */
 export function ReferenceSettings({ form, update }: Props) {
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [storeOpen, setStoreOpen] = useState(false);
   const { references } = useReferences();
   const picked = pickedLibraryReferences(form, references);
   const t = useT();
@@ -606,6 +608,12 @@ export function ReferenceSettings({ form, update }: Props) {
         onSelectedChange={(libraryReferenceIds) =>
           update({ libraryReferenceIds })
         }
+        onManage={() => setStoreOpen(true)}
+      />
+      <ReferenceManagerDialog
+        open={storeOpen}
+        onOpenChange={setStoreOpen}
+        kind={form.referenceMode}
       />
     </div>
   );

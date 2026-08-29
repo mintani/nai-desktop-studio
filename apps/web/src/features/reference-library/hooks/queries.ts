@@ -2,10 +2,13 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { bytesToBase64 } from "@/lib/base64";
+
 import {
   createReference,
   deleteReference,
   listReferences,
+  referenceImageUrl,
   updateReference,
   type ReferenceMetadata,
 } from "../lib/api";
@@ -100,4 +103,37 @@ export function useReferences() {
     save,
     remove,
   };
+}
+
+/**
+ * Builds the create input for an independent copy: the image bytes are
+ * re-fetched so the copy owns its own file. The copy starts unencoded, but
+ * encoding the same image at the same settings hits the server's
+ * content-addressed cache, so it normally costs nothing until the copy's
+ * settings diverge.
+ */
+export async function duplicateReferenceInput(
+  source: ReferenceEntry,
+  name: string
+): Promise<NewReference | null> {
+  try {
+    const response = await fetch(referenceImageUrl(source.id));
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return {
+      metadata: {
+        name,
+        groupName: source.groupName,
+        kind: source.kind,
+        strength: source.strength,
+        infoExtracted: source.infoExtracted,
+        referenceType: source.referenceType,
+        fidelity: source.fidelity,
+      },
+      imageBase64: bytesToBase64(new Uint8Array(await blob.arrayBuffer())),
+      contentType: blob.type || "image/png",
+    };
+  } catch {
+    return null;
+  }
 }

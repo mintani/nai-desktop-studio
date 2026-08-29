@@ -9,17 +9,13 @@ import {
   DialogTitle,
 } from "@nai-desktop-studio/ui/components/dialog";
 import { Input } from "@nai-desktop-studio/ui/components/input";
-import { Label } from "@nai-desktop-studio/ui/components/label";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
-import { Coins, ImagePlus, Loader2, Search, Trash2, Zap } from "lucide-react";
+import { ImagePlus, Loader2, Search, Settings2, Trash2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { GroupField, collectGroupNames } from "@/components/group-field";
-import { LabeledSlider } from "@/components/labeled-slider";
+import { collectGroupNames } from "@/components/group-field";
 import { readImageFile } from "@/features/generate/lib/image-file";
-import { REFERENCE_TYPES } from "@/features/generate/types/reference";
-import type { ReferenceType } from "@/features/generate/types/reference";
 import { useT } from "@/i18n/provider";
 
 import { useReferences } from "../hooks/queries";
@@ -30,6 +26,10 @@ import {
   type ReferenceEntry,
   type ReferenceKind,
 } from "../types/reference";
+import {
+  ReferenceEntryFields,
+  ReferenceEntryStatus,
+} from "./reference-entry-fields";
 
 type Props = {
   open: boolean;
@@ -38,6 +38,8 @@ type Props = {
   kind: ReferenceKind;
   selectedIds: string[];
   onSelectedChange: (ids: string[]) => void;
+  /** Opens the vibe store, so a missing image can be added and filed here. */
+  onManage: () => void;
   /**
    * How many more images this run has room for. A request is capped whatever
    * the images came from, so what the panel already holds counts against this.
@@ -59,6 +61,7 @@ export function ReferencePickerDialog({
   kind,
   selectedIds,
   onSelectedChange,
+  onManage,
   remaining,
 }: Props) {
   const t = useT();
@@ -212,6 +215,16 @@ export function ReferencePickerDialog({
             {busy ? <Loader2 className="animate-spin" /> : <ImagePlus />}
             {t("referenceLibrary.add")}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="shrink-0"
+            onClick={onManage}
+          >
+            <Settings2 />
+            {t("generate.picker.manage")}
+          </Button>
         </div>
 
         <div className="flex min-h-0 flex-1 gap-3">
@@ -271,28 +284,7 @@ export function ReferencePickerDialog({
                               </span>
                               {/* Encoded or not is the only thing here that
                                   costs money, so it gets the colour. */}
-                              <span
-                                className={cn(
-                                  "flex items-center gap-1 font-mono text-[10px]",
-                                  entry.kind === "reference"
-                                    ? "text-muted-foreground"
-                                    : entry.encodedAt
-                                      ? "text-muted-foreground"
-                                      : "text-primary"
-                                )}
-                              >
-                                {entry.kind === "vibe" &&
-                                  (entry.encodedAt ? (
-                                    <Zap className="size-2.5" aria-hidden />
-                                  ) : (
-                                    <Coins className="size-2.5" aria-hidden />
-                                  ))}
-                                {entry.kind === "reference"
-                                  ? t("referenceLibrary.preciseCost")
-                                  : entry.encodedAt
-                                    ? t("referenceLibrary.encoded")
-                                    : t("referenceLibrary.notEncoded")}
-                              </span>
+                              <ReferenceEntryStatus entry={entry} />
                             </span>
                             {selected && (
                               <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full font-mono text-[10px] font-semibold tabular-nums ring-2">
@@ -312,90 +304,11 @@ export function ReferencePickerDialog({
           <div className="w-72 shrink-0 space-y-3 overflow-y-auto border-l py-1 pr-1 pl-3">
             {editing ? (
               <>
-                <div className="space-y-1">
-                  <Label htmlFor="reference-name">
-                    {t("referenceLibrary.name")}
-                  </Label>
-                  <Input
-                    id="reference-name"
-                    value={editing.name}
-                    onChange={(event) => patch({ name: event.target.value })}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="reference-group">{t("group.label")}</Label>
-                  <GroupField
-                    id="reference-group"
-                    value={editing.groupName}
-                    options={groupOptions}
-                    onChange={(groupName) => patch({ groupName })}
-                  />
-                </div>
-
-                <LabeledSlider
-                  label={t("reference.strength")}
-                  value={editing.strength}
-                  min={0.01}
-                  max={1}
-                  step={0.01}
-                  onChange={(strength) => patch({ strength })}
+                <ReferenceEntryFields
+                  entry={editing}
+                  groupOptions={groupOptions}
+                  onPatch={patch}
                 />
-
-                {editing.kind === "vibe" ? (
-                  <div className="space-y-1.5">
-                    <LabeledSlider
-                      label={t("reference.infoExtracted")}
-                      value={editing.infoExtracted}
-                      min={0.01}
-                      max={1}
-                      step={0.01}
-                      onChange={(infoExtracted) => patch({ infoExtracted })}
-                    />
-                    <p className="text-muted-foreground/80 text-[10px] leading-relaxed">
-                      {t("referenceLibrary.infoExtractedHint")}
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-1">
-                      <Label>{t("reference.mode.precise")}</Label>
-                      <div className="flex flex-wrap gap-1">
-                        {REFERENCE_TYPES.map((type: ReferenceType) => (
-                          <Button
-                            key={type}
-                            type="button"
-                            size="xs"
-                            variant={
-                              editing.referenceType === type
-                                ? "secondary"
-                                : "outline"
-                            }
-                            className={cn(
-                              editing.referenceType === type && "border-primary"
-                            )}
-                            onClick={() => patch({ referenceType: type })}
-                          >
-                            {t(
-                              type === "character"
-                                ? "reference.type.character"
-                                : type === "style"
-                                  ? "reference.type.style"
-                                  : "reference.type.characterStyle"
-                            )}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                    <LabeledSlider
-                      label={t("reference.fidelity")}
-                      value={editing.fidelity}
-                      min={0}
-                      max={1}
-                      step={0.01}
-                      onChange={(fidelity) => patch({ fidelity })}
-                    />
-                  </>
-                )}
 
                 <Button
                   type="button"

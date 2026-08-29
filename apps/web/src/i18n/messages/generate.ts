@@ -157,6 +157,18 @@ const en = {
   "referenceLibrary.atMax":
     "This run already carries as many reference images as it can.",
 
+  "referenceStore.vibeTitle": "Vibe store",
+  "referenceStore.referenceTitle": "Precise reference store",
+  "referenceStore.noSelection": "Select an image to edit",
+  "referenceStore.copyName": "{name} copy",
+  "referenceStore.duplicate": "Duplicate",
+  "referenceStore.duplicateError": "Could not copy the image",
+  "referenceStore.deleteTitle": "Delete this image?",
+  "referenceStore.deleteDescription":
+    "“{name}” will be removed, along with any stored encode. This cannot be undone.",
+  "referenceStore.deleted": "Deleted “{name}”",
+  "referenceStore.deleteError": "Could not delete the image",
+
   "generate.anlasConfirm.title": "This run spends Anlas",
   "generate.anlasConfirm.description":
     "The reference images add about {count} Anlas on top of the images themselves. Go ahead?",
@@ -370,6 +382,18 @@ const ja: Record<keyof typeof en, string> = {
     "ライブラリを読めなかったので、ライブラリ無しで生成します。",
   "referenceLibrary.dropped": "ライブラリ参照 {count} 件を除きました。",
   "referenceLibrary.atMax": "この生成で使える参照画像の上限に達しています。",
+
+  "referenceStore.vibeTitle": "バイブストア",
+  "referenceStore.referenceTitle": "精密参照ストア",
+  "referenceStore.noSelection": "編集する画像を選択してください",
+  "referenceStore.copyName": "{name} のコピー",
+  "referenceStore.duplicate": "複製",
+  "referenceStore.duplicateError": "画像を複製できませんでした",
+  "referenceStore.deleteTitle": "この画像を削除しますか？",
+  "referenceStore.deleteDescription":
+    "「{name}」を保存済みエンコードごと削除します。この操作は取り消せません。",
+  "referenceStore.deleted": "「{name}」を削除しました",
+  "referenceStore.deleteError": "画像を削除できませんでした",
 
   "generate.anlasConfirm.title": "Anlas を消費します",
   "generate.anlasConfirm.description":

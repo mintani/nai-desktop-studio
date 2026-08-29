@@ -85,6 +85,15 @@ export type NovelAIClientOptions = {
   imageBase?: string;
   /** Base URL for the account API. Defaults to https://api.novelai.net */
   apiBase?: string;
+  /**
+   * Wraps every vibe encode this client performs — the exported encodeVibe and
+   * the ones made while building a generation payload. Encoding costs Anlas,
+   * so a host can slot a cache in front without this package knowing where or
+   * how the results are kept.
+   */
+  wrapEncodeVibe?: (
+    encode: (request: EncodeVibeBody) => Promise<string>
+  ) => (request: EncodeVibeBody) => Promise<string>;
 };
 
 /** Extract message from a JSON NovelAI error body, or the raw body otherwise. */
@@ -278,13 +287,14 @@ export function createNovelAIClient({
   apiKey,
   imageBase = NOVELAI_IMAGE_BASE,
   apiBase = NOVELAI_API_BASE,
+  wrapEncodeVibe,
 }: NovelAIClientOptions) {
   const headers = () => ({
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
   });
 
-  async function encodeVibe(request: EncodeVibeBody): Promise<string> {
+  async function rawEncodeVibe(request: EncodeVibeBody): Promise<string> {
     const response = await fetchWithRetry(`${imageBase}/ai/encode-vibe`, {
       method: "POST",
       headers: headers(),
@@ -295,6 +305,14 @@ export function createNovelAIClient({
 
     return Buffer.from(await response.arrayBuffer()).toString("base64");
   }
+
+  // Every encode this client performs goes through the wrapper: the exported
+  // encodeVibe and the ones made while building a generation payload alike.
+  // An encode is a pure function of its request, so there is no such thing as
+  // an encode that must not be served from a cache.
+  const encodeVibe = wrapEncodeVibe
+    ? wrapEncodeVibe(rawEncodeVibe)
+    : rawEncodeVibe;
 
   /**
    * Generate one or more images. Passes n_samples through unchanged, so a

@@ -26,9 +26,8 @@ export type ReferenceCost = {
 type Props = {
   open: boolean;
   /**
-   * The breakdown to show. Null while the estimate is still being fetched —
-   * whether to stop is decided without it, so the dialog can open first and
-   * fill the figures in.
+   * The breakdown to show. Assessed before the dialog opens, so it is present
+   * whenever the dialog is; null only while closed.
    */
   cost: ReferenceCost | null;
   onConfirm: () => void;

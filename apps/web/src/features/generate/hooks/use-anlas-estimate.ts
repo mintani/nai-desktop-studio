@@ -96,8 +96,10 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
         n_samples: deferred.mode === "alternate" ? deferred.nSamples : 1,
         character_reference_count: deferred.referenceCount,
         vibe_reference_count: deferred.vibeCount,
-        // An image dropped into the panel is encoded once per batch, so it is
-        // always uncached. A library entry that already has its encode is not.
+        // A panel image is counted as uncached here even though the server
+        // may hold its encode — checking would cost a request per keystroke.
+        // The button may overstate; the confirm dialog, which opens before
+        // anything is spent, asks the cache and shows the exact figure.
         uncached_vibe_count: deferred.uncachedVibeCount,
         // Opus makes small generations free, which changes the number shown on
         // the generate button.
@@ -108,11 +110,6 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
       }),
   });
 
-  // In queue mode each image is its own request, so the per-request cost repeats
-  // for every image; in alternate mode the figure already covers the batch.
-  // Vibe encoding is the exception either way: charged once, not per image.
-  const repeats = deferred.mode === "alternate" ? 1 : deferred.nSamples;
-
   const total = query.data
     ? deferred.mode === "alternate"
       ? query.data.total_anlas
@@ -121,25 +118,6 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
           query.data.vibe_reference_anlas) *
           deferred.nSamples +
         query.data.vibe_encoding_anlas
-    : null;
-
-  /**
-   * What the reference images add on top of the images themselves.
-   *
-   * Kept apart from the total because it is the part worth stopping for: the
-   * base cost is what the person asked for, while this is spent on top and,
-   * for encoding, spent whether or not the result is any good.
-   */
-  const encoding = query.data?.vibe_encoding_anlas ?? 0;
-  const vibeSurcharge = (query.data?.vibe_reference_anlas ?? 0) * repeats;
-  const precise = (query.data?.character_reference_anlas ?? 0) * repeats;
-  const referenceCost = query.data
-    ? {
-        encoding,
-        vibeSurcharge,
-        precise,
-        total: encoding + vibeSurcharge + precise,
-      }
     : null;
 
   // "0 Anlas" reads too much like a real cost at a glance, so say it is free.
@@ -152,5 +130,5 @@ export function useAnlasEstimate(form: FormState, imageCount?: number) {
         ? t("generate.free")
         : t("unit.anlas", { count: total.toLocaleString() });
 
-  return { anlasText, estimate: query.data ?? null, referenceCost };
+  return { anlasText, estimate: query.data ?? null };
 }

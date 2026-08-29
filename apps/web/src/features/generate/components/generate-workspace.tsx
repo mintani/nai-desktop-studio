@@ -3,18 +3,19 @@
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { MessageKey } from "@/i18n/messages";
 import { useT } from "@/i18n/provider";
 
 import { useCharacters } from "@/features/characters/hooks/queries";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
+import { useSettings } from "@/features/settings/hooks/queries";
 import { useSituations } from "@/features/situations/hooks/queries";
 import { useStyles } from "@/features/styles/hooks/queries";
 import type { Style } from "@/features/styles/types/style";
 
-import { INITIAL_FORM } from "../constants";
+import { INITIAL_FORM, MODEL_OPTIONS } from "../constants";
 import { useAnlasEstimate } from "../hooks/use-anlas-estimate";
 import { useGenerationEngine } from "../hooks/use-generation-engine";
 import { useImageLibrary } from "../hooks/use-image-library";
@@ -67,6 +68,25 @@ const MODE_STORAGE_KEY = "nai-generation-mode";
 export function GenerateWorkspace() {
   const t = useT();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const { data: settings } = useSettings();
+
+  // The saved default model, applied once when settings arrive. Only while the
+  // form still holds the built-in fallback: a model the person already picked
+  // in the first moments must not be snatched back.
+  const appliedDefaultModel = useRef(false);
+  useEffect(() => {
+    if (appliedDefaultModel.current || !settings) return;
+    appliedDefaultModel.current = true;
+    const saved = MODEL_OPTIONS.find(
+      (option) => option.value === settings.defaultModel
+    )?.value;
+    if (!saved) return;
+    setForm((current) =>
+      current.model === INITIAL_FORM.model
+        ? { ...current, model: saved }
+        : current
+    );
+  }, [settings]);
   const { situations: situationList } = useSituations();
   const { characters: characterList } = useCharacters();
   const { styles: styleList } = useStyles();

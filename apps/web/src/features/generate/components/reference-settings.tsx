@@ -318,6 +318,7 @@ type Props = {
 export function ReferenceSettings({ form, update }: Props) {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [storeOpen, setStoreOpen] = useState(false);
+  const [storeKind, setStoreKind] = useState<ReferenceMode>("vibe");
   const { references } = useReferences();
   const picked = pickedLibraryReferences(form, references);
   const t = useT();
@@ -332,6 +333,11 @@ export function ReferenceSettings({ form, update }: Props) {
       ? MAX_VIBE_REFERENCES
       : MAX_CHARACTER_REFERENCES;
   const atMax = inUse >= limit;
+
+  function openStore(kind: ReferenceMode) {
+    setStoreKind(kind);
+    setStoreOpen(true);
+  }
 
   async function handlePickI2i(file: File) {
     const read = await readImageFile(file);
@@ -444,8 +450,9 @@ export function ReferenceSettings({ form, update }: Props) {
         )}
       </section>
 
-      {/* V5 takes no reference images at all yet, so the whole vibe / precise
-          block folds into one line saying so. i2i above still works. */}
+      {/* V5 takes no reference images at all yet, so the vibe / precise block
+          folds into a note. i2i above still works, and the stores stay
+          reachable: they are plain storage, independent of the model. */}
       {!supportsReferenceImages(form.model) ? (
         <section className="space-y-2">
           <h4 className="text-muted-foreground text-[11px] font-medium">
@@ -454,6 +461,30 @@ export function ReferenceSettings({ form, update }: Props) {
           <p className="text-muted-foreground text-[10px] leading-tight">
             {t("reference.noneOnV5")}
           </p>
+          <div className="space-y-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full justify-between rounded-sm! px-2 font-normal"
+              onClick={() => openStore("vibe")}
+            >
+              <span className="truncate">{t("referenceStore.vibeTitle")}</span>
+              <Library className="text-muted-foreground shrink-0" aria-hidden />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full justify-between rounded-sm! px-2 font-normal"
+              onClick={() => openStore("reference")}
+            >
+              <span className="truncate">
+                {t("referenceStore.referenceTitle")}
+              </span>
+              <Library className="text-muted-foreground shrink-0" aria-hidden />
+            </Button>
+          </div>
         </section>
       ) : (
         <section className="space-y-2">
@@ -608,12 +639,12 @@ export function ReferenceSettings({ form, update }: Props) {
         onSelectedChange={(libraryReferenceIds) =>
           update({ libraryReferenceIds })
         }
-        onManage={() => setStoreOpen(true)}
+        onManage={() => openStore(form.referenceMode)}
       />
       <ReferenceManagerDialog
         open={storeOpen}
         onOpenChange={setStoreOpen}
-        kind={form.referenceMode}
+        kind={storeKind}
       />
     </div>
   );

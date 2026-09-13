@@ -92,22 +92,46 @@ function findTextBlock(prompt: string) {
   return match.index + (match[0].startsWith("\n") ? 1 : 0);
 }
 
+/** The tag the official app writes into the prompt for a transparent background. */
+const TRANSPARENT_BACKGROUND_TAG = "transparent background";
+
 /**
- * Quality tags go at the end of the tag part, not the end of the prompt:
- * appended after a Text: block they would be drawn into the image as text.
+ * What follows the prompt's tags: the transparent-background tag, then the
+ * quality tags. The official app folds the tag into the quality preset's
+ * suffix, so it sits right before the quality tags and is still added when
+ * they are off. tag_hint_transparent_background only tells NovelAI the tag is
+ * there; the tag itself is what makes the background transparent.
+ */
+function resolvePromptSuffix(body: GenerateImageBody) {
+  const parts: string[] = [];
+  if (body.tag_hint_transparent_background) {
+    parts.push(TRANSPARENT_BACKGROUND_TAG);
+  }
+  // Every entry in QUALITY_TAGS begins with ", ".
+  if (body.quality !== false) {
+    parts.push(QUALITY_TAGS[resolveModel(body.model)].slice(2));
+  }
+  return parts.join(", ");
+}
+
+function joinTags(head: string, tail: string) {
+  if (!head) return tail;
+  if (!tail) return head;
+  return `${head}, ${tail}`;
+}
+
+/**
+ * The suffix goes at the end of the tag part, not the end of the prompt:
+ * appended after a Text: block it would be drawn into the image as text.
  */
 function resolvePrompt(body: GenerateImageBody) {
-  if (body.quality === false) return body.prompt;
-  const quality = QUALITY_TAGS[resolveModel(body.model)];
+  const suffix = resolvePromptSuffix(body);
+  if (!suffix) return body.prompt;
   const start = findTextBlock(body.prompt);
-  if (start === -1) return `${body.prompt}${quality}`;
+  if (start === -1) return joinTags(body.prompt, suffix);
   const tags = body.prompt.slice(0, start).trimEnd();
   const textBlock = body.prompt.slice(start);
-  // Every entry in QUALITY_TAGS begins with ", ", which has nothing to attach
-  // to when the prompt is only a Text: block.
-  return tags
-    ? `${tags}${quality}\n${textBlock}`
-    : `${quality.slice(2)}\n${textBlock}`;
+  return `${joinTags(tags, suffix)}\n${textBlock}`;
 }
 
 function resolveNegativePrompt(body: GenerateImageBody) {
@@ -158,8 +182,6 @@ export async function buildGeneratePayload(
   const model = resolveModel(body.model);
   const effectiveModel = resolveEffectiveModel(body);
   const { width, height } = resolveSize(body.size);
-  const prompt = resolvePrompt(body);
-  const negativePrompt = resolveNegativePrompt(body);
 
   if (body.i2i && body.inpaint) {
     throw new Error("Cannot use both i2i and inpaint at the same time");
@@ -192,6 +214,10 @@ export async function buildGeneratePayload(
     );
   }
 
+  // After the checks: the prompt suffix trusts that the transparency flag has
+  // already been rejected on a model that cannot take it.
+  const prompt = resolvePrompt(body);
+  const negativePrompt = resolveNegativePrompt(body);
   const source = body.i2i ?? body.inpaint;
 
   const referenceImageMultiple = body.controlnet

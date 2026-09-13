@@ -76,9 +76,11 @@ export const generateImageSchema = z.object({
   n_samples: z.number().int().min(1).max(8).optional(),
   cfg_rescale: z.number().min(0).max(1).optional(),
   variety_boost: z.boolean().optional(),
-  // V5-only: emit a straight (unmultiplied) alpha channel.
+  // V5-only: write the output's alpha channel straight (unmultiplied), the
+  // official app's default mode for transparent images.
   straight_alpha: z.boolean().optional(),
-  // V5-only: hint the model toward a transparent background.
+  // V5-only: add the "transparent background" tag to the prompt and tell
+  // NovelAI it is there.
   tag_hint_transparent_background: z.boolean().optional(),
   i2i: z
     .object({

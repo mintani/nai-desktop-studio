@@ -136,8 +136,10 @@ export function buildGenerateRequest(
     ...(baseSeed === null ? {} : { seed: baseSeed + index }),
     quality: form.quality,
     variety_boost: form.varietyBoost,
-    // One switch drives both fields: alpha output without the background hint
-    // (or the reverse) is not a combination the official app offers either.
+    // One switch drives both fields. straight_alpha only picks how the alpha
+    // channel is written (straight is the official app's default), and without
+    // the background tag that channel is opaque anyway, so the two travel
+    // together.
     ...(form.transparentBackground && supportsTransparency(form.model)
       ? { straight_alpha: true, tag_hint_transparent_background: true }
       : {}),

@@ -99,7 +99,8 @@ export function ImageGrid({
             }}
             className={cn(
               "bg-card relative cursor-pointer overflow-hidden rounded-lg border transition-[border-color,box-shadow] duration-150 ease-out",
-              isSelected && "ring-primary ring-2 ring-offset-2"
+              isSelected &&
+                "ring-primary ring-offset-canvas ring-2 ring-offset-2"
             )}
             title={t("viewer.grid.tileHint")}
           >
@@ -113,15 +114,9 @@ export function ImageGrid({
                 className="pointer-events-none size-full object-cover"
               />
               {isSelected && (
-                <>
-                  <span
-                    className="bg-primary/10 pointer-events-none absolute inset-0"
-                    aria-hidden
-                  />
-                  <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full ring-2">
-                    <Check className="size-3" strokeWidth={3} aria-hidden />
-                  </span>
-                </>
+                <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full ring-2">
+                  <Check className="size-3" strokeWidth={3} aria-hidden />
+                </span>
               )}
             </span>
           </button>

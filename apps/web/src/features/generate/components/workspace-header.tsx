@@ -128,7 +128,7 @@ export function WorkspaceHeader({
             type="button"
             variant={viewMode === "single" ? "secondary" : "ghost"}
             size="icon"
-            className="size-7"
+            className={cn("size-7", viewMode === "single" && "shadow-segment")}
             title={t("workspace.viewSingle")}
             onClick={() => onViewModeChange("single")}
           >
@@ -139,7 +139,7 @@ export function WorkspaceHeader({
             type="button"
             variant={viewMode === "grid" ? "secondary" : "ghost"}
             size="icon"
-            className="size-7"
+            className={cn("size-7", viewMode === "grid" && "shadow-segment")}
             title={t("workspace.viewGrid")}
             onClick={() => onViewModeChange("grid")}
           >

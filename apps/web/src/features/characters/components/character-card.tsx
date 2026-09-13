@@ -37,7 +37,7 @@ export function CharacterCard({
       className={cn(
         "group flex items-stretch rounded-sm border transition-colors",
         selected
-          ? "border-primary bg-muted/50"
+          ? "border-primary bg-secondary"
           : "border-border hover:bg-muted/30"
       )}
     >

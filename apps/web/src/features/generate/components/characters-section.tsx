@@ -81,8 +81,10 @@ export function CharactersSection({
           // there is nothing extra to click before setting where it stands.
           onFocusCapture={() => setActiveIndex(index)}
           className={cn(
-            "space-y-2 rounded-md border p-2 transition-shadow duration-150 ease-out",
-            index === active && characters.length > 1 && "ring-primary ring-2"
+            "space-y-2 rounded-md border p-2 transition-colors duration-150 ease-out",
+            index === active &&
+              characters.length > 1 &&
+              "border-primary bg-secondary"
           )}
         >
           <div className="flex items-center justify-between">

@@ -124,7 +124,7 @@ export function SituationList({
                       className={cn(
                         "w-full rounded-sm border border-transparent px-2 py-1.5 text-left",
                         selectedId === item.id
-                          ? "border-border bg-muted"
+                          ? "border-primary bg-secondary"
                           : "hover:bg-muted/50"
                       )}
                     >

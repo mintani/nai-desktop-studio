@@ -306,7 +306,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
 
       {situations.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-2">
-          <span className="text-muted-foreground mr-0.5 shrink-0 text-[10px] font-medium tracking-wide uppercase">
+          <span className="text-muted-foreground mr-0.5 shrink-0 text-[10px] font-medium">
             {t("characters.reference")}
           </span>
           {groups.length > 1 ? (
@@ -536,7 +536,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
 
               <div className="bg-muted/30 space-y-2 rounded-md p-2.5">
                 <div className="space-y-0.5">
-                  <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                  <span className="text-muted-foreground text-[10px] font-medium">
                     {t("characters.previewPositive")}
                   </span>
                   {positivePreview ? (
@@ -551,7 +551,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                 </div>
                 {negativePreview ? (
                   <div className="space-y-0.5">
-                    <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                    <span className="text-muted-foreground text-[10px] font-medium">
                       {t("characters.previewNegative")}
                     </span>
                     <p className="font-mono text-[11px] leading-relaxed break-words">

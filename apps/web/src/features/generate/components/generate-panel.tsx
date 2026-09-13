@@ -18,7 +18,11 @@ import { useT } from "@/i18n/provider";
 
 import { aspectOfSize } from "../constants";
 import type { PanelSectionId } from "../constants";
-import { supportsCharacters as modelSupportsCharacters } from "../lib/build-request";
+import {
+  supportsCharacters as modelSupportsCharacters,
+  supportsReferences,
+  supportsVibes,
+} from "../lib/build-request";
 import { supportsFreePlacement } from "../lib/placement";
 import type { FormState, GenerationMode } from "../types/generate";
 import type { TemplateSelection } from "../types/template";
@@ -117,11 +121,16 @@ export function GeneratePanel({
   onCancel,
 }: Props) {
   const t = useT();
+  // Only what this run will send. The form keeps vibes and references across a
+  // model switch, but a badge counting images the model cannot take would
+  // promise something the run does not do.
+  const vibesSent = form.referenceMode === "vibe" && supportsVibes(form.model);
+  const referencesSent =
+    form.referenceMode === "reference" && supportsReferences(form.model);
   const referenceCount =
     (form.i2i ? 1 : 0) +
-    (form.referenceMode === "vibe"
-      ? form.vibes.length
-      : form.references.length);
+    (vibesSent ? form.vibes.length : 0) +
+    (referencesSent ? form.references.length : 0);
   const supportsCharacters = modelSupportsCharacters(form.model);
   const { data: settings } = useSettings();
   const openSections = settings?.openSections;

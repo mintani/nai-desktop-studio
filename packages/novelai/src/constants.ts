@@ -15,6 +15,20 @@ export const IMAGE_MODELS = [
 ] as const;
 
 /**
+ * The models that take vibe transfer, and so the only ones a vibe can be
+ * encoded against. V5 does not (the official app lists it with
+ * vibetransfer: false), so an encode for it would be paid for and unusable.
+ */
+export const VIBE_MODELS = [
+  "nai-diffusion-4-5-full",
+  "nai-diffusion-4-5-curated",
+  "nai-diffusion-4-full",
+  "nai-diffusion-4-curated",
+  "nai-diffusion-3",
+  "nai-diffusion-3-furry",
+] as const satisfies readonly (typeof IMAGE_MODELS)[number][];
+
+/**
  * Quality tags the official app appends per model
  * (docs.novelai.net/en/image/qualitytags). V5 also has a lighter set behind a
  * level picker; the quality switch here is on/off, so V5 gets the standard set.

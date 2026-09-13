@@ -5,7 +5,7 @@ import {
   UC_PRESET_TEXT,
   V5_UC_PRESET_TEXT,
 } from "./constants";
-import { isV4Model, isV45Model, isV5Model } from "./schemas";
+import { isV4Model, isV45Model, isV5Model, isVibeModel } from "./schemas";
 import type {
   CharacterPosition,
   EncodeVibeBody,
@@ -92,22 +92,46 @@ function findTextBlock(prompt: string) {
   return match.index + (match[0].startsWith("\n") ? 1 : 0);
 }
 
+/** The tag the official app writes into the prompt for a transparent background. */
+const TRANSPARENT_BACKGROUND_TAG = "transparent background";
+
 /**
- * Quality tags go at the end of the tag part, not the end of the prompt:
- * appended after a Text: block they would be drawn into the image as text.
+ * What follows the prompt's tags: the transparent-background tag, then the
+ * quality tags. The official app folds the tag into the quality preset's
+ * suffix, so it sits right before the quality tags and is still added when
+ * they are off. tag_hint_transparent_background only tells NovelAI the tag is
+ * there; the tag itself is what makes the background transparent.
+ */
+function resolvePromptSuffix(body: GenerateImageBody) {
+  const parts: string[] = [];
+  if (body.tag_hint_transparent_background) {
+    parts.push(TRANSPARENT_BACKGROUND_TAG);
+  }
+  // Every entry in QUALITY_TAGS begins with ", ".
+  if (body.quality !== false) {
+    parts.push(QUALITY_TAGS[resolveModel(body.model)].slice(2));
+  }
+  return parts.join(", ");
+}
+
+function joinTags(head: string, tail: string) {
+  if (!head) return tail;
+  if (!tail) return head;
+  return `${head}, ${tail}`;
+}
+
+/**
+ * The suffix goes at the end of the tag part, not the end of the prompt:
+ * appended after a Text: block it would be drawn into the image as text.
  */
 function resolvePrompt(body: GenerateImageBody) {
-  if (body.quality === false) return body.prompt;
-  const quality = QUALITY_TAGS[resolveModel(body.model)];
+  const suffix = resolvePromptSuffix(body);
+  if (!suffix) return body.prompt;
   const start = findTextBlock(body.prompt);
-  if (start === -1) return `${body.prompt}${quality}`;
+  if (start === -1) return joinTags(body.prompt, suffix);
   const tags = body.prompt.slice(0, start).trimEnd();
   const textBlock = body.prompt.slice(start);
-  // Every entry in QUALITY_TAGS begins with ", ", which has nothing to attach
-  // to when the prompt is only a Text: block.
-  return tags
-    ? `${tags}${quality}\n${textBlock}`
-    : `${quality.slice(2)}\n${textBlock}`;
+  return `${joinTags(tags, suffix)}\n${textBlock}`;
 }
 
 function resolveNegativePrompt(body: GenerateImageBody) {
@@ -148,6 +172,35 @@ function getStreamMode(body: GenerateImageBody | GenerateImageStreamBody) {
 }
 
 /**
+ * The encoded vibes a request carries. An image that arrives already encoded
+ * (style and library vibes are encoded when saved) is passed through; the
+ * rest are encoded against the generation model, which therefore has to be
+ * one that takes vibes at all.
+ */
+async function encodeControlnetImages(
+  images: NonNullable<GenerateImageBody["controlnet"]>["images"],
+  model: ImageModel,
+  encodeVibe: (request: EncodeVibeBody) => Promise<string>
+) {
+  if (!isVibeModel(model)) {
+    throw new Error("Vibe transfer is not supported for V5 models");
+  }
+  return Promise.all(
+    images.map(async (img) => {
+      if (img.encoded !== undefined) return img.encoded;
+      if (img.image === undefined) {
+        throw new Error("controlnet image requires image or encoded");
+      }
+      return encodeVibe({
+        image: img.image,
+        information_extracted: img.info_extracted ?? 0.7,
+        model: img.controlnet_model ?? model,
+      });
+    })
+  );
+}
+
+/**
  * Build the payload for NovelAI's /ai/generate-image. Vibes (controlnet) need
  * encoding at generation time, so the caller injects encodeVibe.
  */
@@ -158,8 +211,6 @@ export async function buildGeneratePayload(
   const model = resolveModel(body.model);
   const effectiveModel = resolveEffectiveModel(body);
   const { width, height } = resolveSize(body.size);
-  const prompt = resolvePrompt(body);
-  const negativePrompt = resolveNegativePrompt(body);
 
   if (body.i2i && body.inpaint) {
     throw new Error("Cannot use both i2i and inpaint at the same time");
@@ -178,9 +229,6 @@ export async function buildGeneratePayload(
   if (body.character_references?.length && !isV45Model(model)) {
     throw new Error("Character references are only supported for V4.5 models");
   }
-  if (body.controlnet && isV5Model(model)) {
-    throw new Error("Vibe transfer is not supported for V5 models");
-  }
   // Checked against the effective model: V5 Curated inpaints really run on
   // V4.5 Curated, which does not take the transparency parameters.
   if (
@@ -192,24 +240,14 @@ export async function buildGeneratePayload(
     );
   }
 
+  // After the checks: the prompt suffix trusts that the transparency flag has
+  // already been rejected on a model that cannot take it.
+  const prompt = resolvePrompt(body);
+  const negativePrompt = resolveNegativePrompt(body);
   const source = body.i2i ?? body.inpaint;
 
   const referenceImageMultiple = body.controlnet
-    ? await Promise.all(
-        body.controlnet.images.map(async (img) => {
-          // Skip re-encoding if already encoded (style vibes are encoded when
-          // registered).
-          if (img.encoded !== undefined) return img.encoded;
-          if (img.image === undefined) {
-            throw new Error("controlnet image requires image or encoded");
-          }
-          return encodeVibe({
-            image: img.image,
-            information_extracted: img.info_extracted ?? 0.7,
-            model: img.controlnet_model ?? model,
-          });
-        })
-      )
+    ? await encodeControlnetImages(body.controlnet.images, model, encodeVibe)
     : undefined;
 
   const directorReferences = body.character_references
@@ -273,13 +311,19 @@ export async function buildGeneratePayload(
       sampler: body.sampler ?? "k_euler_ancestral",
       seed: body.seed ?? Math.floor(Math.random() * 1_000_000_000),
       n_samples: body.n_samples ?? 1,
-      noise_schedule: body.noise_schedule ?? "karras",
+      // V5 has no noise schedule: the official app drops the field for it.
+      noise_schedule: isV5Model(effectiveModel)
+        ? undefined
+        : (body.noise_schedule ?? "karras"),
       prompt: isV4Model(model) ? undefined : prompt,
       negative_prompt: negativePrompt,
       qualityToggle: body.quality ?? true,
       ucPreset: UC_PRESET_INT[body.uc_preset ?? "light"],
       cfg_rescale: body.cfg_rescale ?? 0,
-      skip_cfg_above_sigma: body.variety_boost ? 58 : undefined,
+      // Variety+ is not offered on V5 (the official app deletes the field), so
+      // the flag is ignored there rather than sent.
+      skip_cfg_above_sigma:
+        body.variety_boost && !isV5Model(effectiveModel) ? 58 : undefined,
       // Only sent when set: JSON.stringify drops undefined, and older models
       // reject the fields.
       straight_alpha: body.straight_alpha || undefined,

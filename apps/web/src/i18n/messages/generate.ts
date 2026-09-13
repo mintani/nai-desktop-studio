@@ -44,6 +44,8 @@ const en = {
     "Skipped {count} scene(s): they build an empty prompt.",
   "generate.template.imagesDropped":
     "Skipped {count} image(s) from the style: the panel holds fewer.",
+  "generate.template.referencesUnsupported":
+    "The style's reference images are not used: {model} does not take them.",
 
   "generate.situationPicker.title": "Choose scenes",
   "generate.situationPicker.description":
@@ -271,6 +273,8 @@ const ja: Record<keyof typeof en, string> = {
     "プロンプトが空になる {count} 件を除きました。",
   "generate.template.imagesDropped":
     "絵柄の画像 {count} 枚を省きました。パネルの上限を超えています。",
+  "generate.template.referencesUnsupported":
+    "絵柄の参照画像は使いません。{model} では受け付けられません。",
 
   "generate.situationPicker.title": "シチュエーションを選択",
   "generate.situationPicker.description":

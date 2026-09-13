@@ -4,6 +4,7 @@ import {
   NOISE_SCHEDULES,
   POSITION_PRESETS,
   SAMPLERS,
+  VIBE_MODELS,
 } from "./constants";
 
 export const sizeSchema = z
@@ -53,7 +54,7 @@ export const controlNetImageSchema = z
     encoded: z.string().min(1).optional(),
     info_extracted: z.number().min(0.01).max(1).optional(),
     strength: z.number().min(0.01).max(1).optional(),
-    controlnet_model: z.enum(IMAGE_MODELS).optional(),
+    controlnet_model: z.enum(VIBE_MODELS).optional(),
   })
   .refine((v) => v.image !== undefined || v.encoded !== undefined, {
     message: "Either image or encoded is required",
@@ -76,9 +77,11 @@ export const generateImageSchema = z.object({
   n_samples: z.number().int().min(1).max(8).optional(),
   cfg_rescale: z.number().min(0).max(1).optional(),
   variety_boost: z.boolean().optional(),
-  // V5-only: emit a straight (unmultiplied) alpha channel.
+  // V5-only: write the output's alpha channel straight (unmultiplied), the
+  // official app's default mode for transparent images.
   straight_alpha: z.boolean().optional(),
-  // V5-only: hint the model toward a transparent background.
+  // V5-only: add the "transparent background" tag to the prompt and tell
+  // NovelAI it is there.
   tag_hint_transparent_background: z.boolean().optional(),
   i2i: z
     .object({
@@ -129,7 +132,9 @@ export const estimateAnlasSchema = z.object({
 export const encodeVibeSchema = z.object({
   image: z.string().min(1),
   information_extracted: z.number().min(0.000_001).max(1),
-  model: z.enum(IMAGE_MODELS),
+  // Only a model that takes vibes; an encode for V5 would cost 2 Anlas for
+  // nothing.
+  model: z.enum(VIBE_MODELS),
 });
 
 export type GenerateImageBody = z.infer<typeof generateImageSchema>;
@@ -137,6 +142,7 @@ export type GenerateImageStreamBody = z.infer<typeof generateImageStreamSchema>;
 export type EstimateAnlasBody = z.infer<typeof estimateAnlasSchema>;
 export type EncodeVibeBody = z.infer<typeof encodeVibeSchema>;
 export type ImageModel = (typeof IMAGE_MODELS)[number];
+export type VibeModel = (typeof VIBE_MODELS)[number];
 export type CharacterPosition = NonNullable<
   NonNullable<GenerateImageBody["characters"]>[number]["position"]
 >;
@@ -170,4 +176,9 @@ export function isV45Model(model: ImageModel): boolean {
  */
 export function isV5Model(model: ImageModel): boolean {
   return model.startsWith("nai-diffusion-5");
+}
+
+/** Whether this model takes vibe transfer, and so can have a vibe encoded for it. */
+export function isVibeModel(model: ImageModel): model is VibeModel {
+  return (VIBE_MODELS as readonly string[]).includes(model);
 }

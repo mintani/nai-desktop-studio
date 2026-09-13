@@ -79,14 +79,16 @@ export type GenerateRequestBody = {
   model: ImageModel;
   size: SizePreset;
   sampler: Sampler;
-  noise_schedule: NoiseSchedule;
+  /** Left out on V5, which has no noise schedule. */
+  noise_schedule?: NoiseSchedule;
   uc_preset: UcPreset;
   steps: number;
   scale: number;
   cfg_rescale: number;
   seed?: number;
   quality: boolean;
-  variety_boost: boolean;
+  /** Left out on V5, which has no Variety+. */
+  variety_boost?: boolean;
   /** V5-only: emit a straight alpha channel. Sent together with the hint. */
   straight_alpha?: boolean;
   tag_hint_transparent_background?: boolean;

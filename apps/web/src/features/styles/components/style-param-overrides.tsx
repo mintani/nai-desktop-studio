@@ -25,6 +25,10 @@ import {
   NOISE_SCHEDULE_OPTIONS,
   SAMPLER_OPTIONS,
 } from "@/features/generate/constants";
+import {
+  supportsNoiseSchedule,
+  supportsVarietyBoost,
+} from "@/features/generate/lib/build-request";
 import { useT } from "@/i18n/provider";
 
 import type {
@@ -82,6 +86,12 @@ function OverrideRow({
 export function StyleParamOverrides({ params, onChange }: Props) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  // A style that pins its model to one without these options has nothing to
+  // override; without a pinned model the panel's model decides at run time.
+  const noiseScheduleOffered =
+    params.model === null || supportsNoiseSchedule(params.model);
+  const varietyBoostOffered =
+    params.model === null || supportsVarietyBoost(params.model);
 
   return (
     <Collapsible
@@ -220,56 +230,62 @@ export function StyleParamOverrides({ params, onChange }: Props) {
           </Select>
         </OverrideRow>
 
-        <OverrideRow
-          label={t("styles.params.noiseSchedule")}
-          enabled={params.noiseSchedule !== null}
-          onToggle={(on) =>
-            onChange({
-              noiseSchedule: on ? ENABLE_DEFAULTS.noiseSchedule : null,
-            })
-          }
-        >
-          <Select
-            value={params.noiseSchedule ?? ENABLE_DEFAULTS.noiseSchedule}
-            onValueChange={(value) => {
-              if (
-                typeof value === "string" &&
-                NOISE_SCHEDULE_OPTIONS.some((option) => option === value)
-              ) {
-                onChange({ noiseSchedule: value as StyleNoiseSchedule });
-              }
-            }}
+        {noiseScheduleOffered && (
+          <OverrideRow
+            label={t("styles.params.noiseSchedule")}
+            enabled={params.noiseSchedule !== null}
+            onToggle={(on) =>
+              onChange({
+                noiseSchedule: on ? ENABLE_DEFAULTS.noiseSchedule : null,
+              })
+            }
           >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {NOISE_SCHEDULE_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </OverrideRow>
+            <Select
+              value={params.noiseSchedule ?? ENABLE_DEFAULTS.noiseSchedule}
+              onValueChange={(value) => {
+                if (
+                  typeof value === "string" &&
+                  NOISE_SCHEDULE_OPTIONS.some((option) => option === value)
+                ) {
+                  onChange({ noiseSchedule: value as StyleNoiseSchedule });
+                }
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {NOISE_SCHEDULE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </OverrideRow>
+        )}
 
-        <OverrideRow
-          label={t("styles.params.varietyBoost")}
-          enabled={params.varietyBoost !== null}
-          onToggle={(on) =>
-            onChange({ varietyBoost: on ? ENABLE_DEFAULTS.varietyBoost : null })
-          }
-        >
-          <label className="flex w-fit items-center gap-2 rounded-sm border px-2 py-1 text-[11px]">
-            <Checkbox
-              checked={params.varietyBoost ?? false}
-              onCheckedChange={(checked) =>
-                onChange({ varietyBoost: checked === true })
-              }
-            />
-            {t("styles.params.varietyBoost")}
-          </label>
-        </OverrideRow>
+        {varietyBoostOffered && (
+          <OverrideRow
+            label={t("styles.params.varietyBoost")}
+            enabled={params.varietyBoost !== null}
+            onToggle={(on) =>
+              onChange({
+                varietyBoost: on ? ENABLE_DEFAULTS.varietyBoost : null,
+              })
+            }
+          >
+            <label className="flex w-fit items-center gap-2 rounded-sm border px-2 py-1 text-[11px]">
+              <Checkbox
+                checked={params.varietyBoost ?? false}
+                onCheckedChange={(checked) =>
+                  onChange({ varietyBoost: checked === true })
+                }
+              />
+              {t("styles.params.varietyBoost")}
+            </label>
+          </OverrideRow>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );

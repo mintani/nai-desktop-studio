@@ -159,7 +159,7 @@ export function WorkspaceHeader({
                   "rounded-pill font-display px-2 py-1 text-[11px] font-medium transition-colors duration-150 ease-out",
                   tileSize === size.value
                     ? "bg-secondary text-secondary-foreground shadow-segment"
-                    : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
+                    : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
                 )}
               >
                 {t(size.labelKey)}

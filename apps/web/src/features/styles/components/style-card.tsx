@@ -46,7 +46,7 @@ export function StyleCard({
           <Palette className="text-muted-foreground/40 size-8" aria-hidden />
         )}
         {style.groupName && (
-          <span className="bg-background/85 text-muted-foreground absolute top-1 left-1 max-w-[calc(100%-0.5rem)] truncate rounded-sm px-1 py-0.5 text-[10px]">
+          <span className="bg-background/85 text-muted-foreground absolute top-1 left-1 max-w-[calc(100%-0.5rem)] truncate rounded-sm px-1 py-0.5 text-[0.625rem]">
             {style.groupName}
           </span>
         )}
@@ -61,7 +61,7 @@ export function StyleCard({
         </div>
         {style.styleTag && (
           <div
-            className="text-muted-foreground truncate font-mono text-[10px]"
+            className="text-muted-foreground truncate font-mono text-[0.625rem]"
             title={style.styleTag}
           >
             {style.styleTag}

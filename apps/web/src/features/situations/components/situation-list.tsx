@@ -102,10 +102,10 @@ export function SituationList({
                     group name and "UNGROUPED" would sit in the same list wearing
                     different clothes. */}
                 <div className="flex items-center gap-1.5 px-1">
-                  <h3 className="text-[11px] font-medium text-muted-foreground">
+                  <h3 className="text-[0.6875rem] font-medium text-muted-foreground">
                     {group.label}
                   </h3>
-                  <span className="font-mono text-[10px] tabular-nums text-muted-foreground/70">
+                  <span className="font-mono text-[0.625rem] tabular-nums text-muted-foreground/70">
                     {group.items.length}
                   </span>
                 </div>
@@ -124,14 +124,14 @@ export function SituationList({
                       className={cn(
                         "w-full rounded-sm border border-transparent px-2 py-1.5 text-left",
                         selectedId === item.id
-                          ? "border-border bg-muted"
+                          ? "border-primary bg-secondary"
                           : "hover:bg-muted/50"
                       )}
                     >
                       <p className="truncate text-xs font-medium">
                         {item.name}
                       </p>
-                      <p className="truncate font-mono text-[10px] text-muted-foreground">
+                      <p className="truncate font-mono text-[0.625rem] text-muted-foreground">
                         {preview || t("situations.noPrompt")}
                       </p>
                     </button>

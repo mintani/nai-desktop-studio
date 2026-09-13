@@ -56,10 +56,10 @@ export function LibraryDialog({
             {groups.map((group) => (
               <section key={group.batchId} className="space-y-2">
                 <div className="text-muted-foreground flex items-baseline gap-2 text-xs">
-                  <span className="tabular-nums">
+                  <span className="font-mono tabular-nums">
                     {formatBatchTime(group.createdAt, locale)}
                   </span>
-                  <span className="tabular-nums">
+                  <span className="font-mono tabular-nums">
                     {t("unit.images", { count: group.images.length })}
                   </span>
                 </div>

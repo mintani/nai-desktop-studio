@@ -341,7 +341,7 @@ export function SingleImageView({
                   className={cn(
                     "aspect-[3/4] h-16 shrink-0 overflow-hidden rounded border transition",
                     i === currentIdx
-                      ? "ring-primary ring-2"
+                      ? "ring-primary ring-offset-canvas ring-2 ring-offset-2"
                       : "opacity-70 hover:opacity-100"
                   )}
                 >

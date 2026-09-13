@@ -111,10 +111,10 @@ export function CharacterList({
             groups.map((group) => (
               <section key={group.key} className="space-y-1.5">
                 <div className="flex items-center gap-1.5 px-0.5">
-                  <h3 className="text-muted-foreground text-[11px] font-medium">
+                  <h3 className="text-muted-foreground text-[0.6875rem] font-medium">
                     {group.label}
                   </h3>
-                  <span className="text-muted-foreground/70 font-mono text-[10px] tabular-nums">
+                  <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
                     {group.items.length}
                   </span>
                 </div>

@@ -81,12 +81,14 @@ export function CharactersSection({
           // there is nothing extra to click before setting where it stands.
           onFocusCapture={() => setActiveIndex(index)}
           className={cn(
-            "space-y-2 rounded-md border p-2 transition-shadow duration-150 ease-out",
-            index === active && characters.length > 1 && "ring-primary ring-2"
+            "space-y-2 rounded-md border p-2 transition-colors duration-150 ease-out",
+            index === active &&
+              characters.length > 1 &&
+              "border-primary bg-secondary"
           )}
         >
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground font-display flex items-center gap-1.5 text-[11px] font-medium">
+            <span className="text-muted-foreground font-display flex items-center gap-1.5 text-[0.6875rem] font-medium">
               {t("generate.character.n", { index: index + 1 })}
               {character.position && (
                 <span className="font-mono tabular-nums">

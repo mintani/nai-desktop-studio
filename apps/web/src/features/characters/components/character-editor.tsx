@@ -111,7 +111,7 @@ function ExtraRow({
         placeholder={t("characters.variableKeyPlaceholder")}
         spellCheck={false}
         autoComplete="off"
-        className="h-7 w-32 shrink-0 font-mono text-[11px]"
+        className="h-7 w-32 shrink-0 font-mono text-[0.6875rem]"
       />
       <div className="min-w-0 flex-1">
         <TagAutocompleteTextarea
@@ -120,7 +120,7 @@ function ExtraRow({
           value={variable.value}
           onChange={onValueChange}
           placeholder={t("characters.valuePlaceholder")}
-          className="min-h-7 py-1.5 font-mono text-[11px]"
+          className="min-h-7 py-1.5 font-mono text-[0.6875rem]"
         />
       </div>
       <Button
@@ -297,7 +297,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                 })
               }
             />
-            <p className="text-muted-foreground/80 text-[10px] leading-relaxed">
+            <p className="text-muted-foreground/80 text-[0.625rem] leading-relaxed">
               {t("characters.genderHint")}
             </p>
           </div>
@@ -306,7 +306,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
 
       {situations.length > 0 && (
         <div className="flex shrink-0 flex-wrap items-center gap-1.5 border-b px-3 py-2">
-          <span className="text-muted-foreground mr-0.5 shrink-0 text-[10px] font-medium tracking-wide uppercase">
+          <span className="text-muted-foreground mr-0.5 shrink-0 text-[0.625rem] font-medium">
             {t("characters.reference")}
           </span>
           {groups.length > 1 ? (
@@ -339,11 +339,11 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
               })}
             </>
           ) : (
-            <span className="text-[11px]">
+            <span className="text-[0.6875rem]">
               {groups[0]?.label ?? t("characters.referenceAll")}
             </span>
           )}
-          <span className="text-muted-foreground/70 ml-auto shrink-0 font-mono text-[10px] tabular-nums">
+          <span className="text-muted-foreground/70 ml-auto shrink-0 font-mono text-[0.625rem] tabular-nums">
             {t("characters.fieldCount", { count: keys.length })}
           </span>
         </div>
@@ -364,7 +364,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                   <label
                     htmlFor={`character-value-${key}`}
                     title={key}
-                    className="text-muted-foreground w-32 shrink-0 truncate pt-2 font-mono text-[11px]"
+                    className="text-muted-foreground w-32 shrink-0 truncate pt-2 font-mono text-[0.6875rem]"
                   >
                     {`{${key}}`}
                   </label>
@@ -375,7 +375,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                       value={valueByKey.get(key) ?? ""}
                       onChange={(value) => setValue(key, value)}
                       placeholder={t("characters.valuePlaceholder")}
-                      className="min-h-7 py-1.5 font-mono text-[11px]"
+                      className="min-h-7 py-1.5 font-mono text-[0.6875rem]"
                     />
                   </div>
                 </div>
@@ -397,7 +397,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                   <label
                     htmlFor={`character-slot-${slot.key}`}
                     title={slot.key}
-                    className="text-muted-foreground block truncate font-mono text-[10px]"
+                    className="text-muted-foreground block truncate font-mono text-[0.625rem]"
                   >
                     {`{${slot.key}}`}
                   </label>
@@ -407,12 +407,12 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                     value={valueByKey.get(slot.key) ?? ""}
                     onChange={(value) => setValue(slot.key, value)}
                     placeholder={t("characters.valuePlaceholder")}
-                    className="min-h-12 font-mono text-[11px]"
+                    className="min-h-12 font-mono text-[0.6875rem]"
                   />
                 </div>
               ))}
             </div>
-            <p className="text-muted-foreground/80 text-[10px] leading-relaxed">
+            <p className="text-muted-foreground/80 text-[0.625rem] leading-relaxed">
               {t("characters.slotsHint")}
             </p>
           </section>
@@ -422,7 +422,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
               <span className="text-xs font-medium">
                 {t("characters.unused")}
               </span>
-              <span className="text-muted-foreground/70 font-mono text-[10px] tabular-nums">
+              <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
                 {extras.length}
               </span>
               <ChevronDown
@@ -434,7 +434,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
               />
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-2 pt-1">
-              <p className="text-muted-foreground/80 text-[10px] leading-relaxed">
+              <p className="text-muted-foreground/80 text-[0.625rem] leading-relaxed">
                 {t("characters.unusedHint")}
               </p>
               {extras.map((variable) => (
@@ -484,7 +484,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
               />
             </CollapsibleTrigger>
             <CollapsibleContent className="space-y-3 pt-2">
-              <p className="text-muted-foreground/80 text-[10px] leading-relaxed">
+              <p className="text-muted-foreground/80 text-[0.625rem] leading-relaxed">
                 {t("characters.ownPromptHint")}
               </p>
               <div className="space-y-1.5">
@@ -497,7 +497,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                   value={character.negativePrompt}
                   onChange={(value) => patch({ negativePrompt: value })}
                   placeholder={t("characters.negativePlaceholder")}
-                  className="font-mono text-[11px]"
+                  className="font-mono text-[0.6875rem]"
                 />
               </div>
               <div className="space-y-1.5">
@@ -512,7 +512,7 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                     patch({ positiveTemplate: event.target.value })
                   }
                   spellCheck={false}
-                  className="min-h-16 font-mono text-[11px]"
+                  className="min-h-16 font-mono text-[0.6875rem]"
                 />
               </div>
               <div className="space-y-1.5">
@@ -527,34 +527,34 @@ export function CharacterEditor({ character, groupOptions, onChange }: Props) {
                     patch({ negativeTemplate: event.target.value })
                   }
                   spellCheck={false}
-                  className="min-h-16 font-mono text-[11px]"
+                  className="min-h-16 font-mono text-[0.6875rem]"
                 />
               </div>
-              <p className="text-muted-foreground text-[10px]">
+              <p className="text-muted-foreground text-[0.625rem]">
                 {t("characters.templateHint")}
               </p>
 
               <div className="bg-muted/30 space-y-2 rounded-md p-2.5">
                 <div className="space-y-0.5">
-                  <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                  <span className="text-muted-foreground text-[0.625rem] font-medium">
                     {t("characters.previewPositive")}
                   </span>
                   {positivePreview ? (
-                    <p className="font-mono text-[11px] leading-relaxed break-words">
+                    <p className="font-mono text-[0.6875rem] leading-relaxed break-words">
                       {positivePreview}
                     </p>
                   ) : (
-                    <p className="text-muted-foreground/60 text-[11px]">
+                    <p className="text-muted-foreground/60 text-[0.6875rem]">
                       {t("characters.previewEmpty")}
                     </p>
                   )}
                 </div>
                 {negativePreview ? (
                   <div className="space-y-0.5">
-                    <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                    <span className="text-muted-foreground text-[0.625rem] font-medium">
                       {t("characters.previewNegative")}
                     </span>
-                    <p className="font-mono text-[11px] leading-relaxed break-words">
+                    <p className="font-mono text-[0.6875rem] leading-relaxed break-words">
                       {negativePreview}
                     </p>
                   </div>

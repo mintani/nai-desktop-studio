@@ -133,7 +133,7 @@ export function PromptEditorField({
               key={`preset-${key}`}
               variant={enabled ? "secondary" : "outline"}
               className={cn(
-                "gap-1 py-0 pr-0.5 font-mono text-[10px] tracking-normal normal-case",
+                "gap-1 py-0 pr-0.5 font-mono text-[0.625rem] tracking-normal normal-case",
                 !enabled &&
                   "border-dashed text-muted-foreground/70 line-through"
               )}
@@ -159,7 +159,7 @@ export function PromptEditorField({
             <Badge
               key={`own-${key}`}
               variant="secondary"
-              className="gap-1 py-0 pr-0.5 font-mono text-[10px] tracking-normal normal-case"
+              className="gap-1 py-0 pr-0.5 font-mono text-[0.625rem] tracking-normal normal-case"
             >
               <span className="py-0.5">{token}</span>
               <ChipButton
@@ -176,7 +176,7 @@ export function PromptEditorField({
           <Badge
             key={`slot-${key}`}
             variant="outline"
-            className="gap-1 border-dashed font-mono text-[10px] tracking-normal normal-case opacity-70"
+            className="gap-1 border-dashed font-mono text-[0.625rem] tracking-normal normal-case opacity-70"
             title={t("situations.token.internal")}
           >
             <Asterisk className="size-2.5" aria-hidden />
@@ -196,7 +196,7 @@ export function PromptEditorField({
         onBlur={onBlur}
         templateTags={templateTags}
         placeholder={t("situations.field.placeholder")}
-        className="min-h-20 font-mono text-[11px]"
+        className="min-h-20 font-mono text-[0.6875rem]"
       />
     </div>
   );

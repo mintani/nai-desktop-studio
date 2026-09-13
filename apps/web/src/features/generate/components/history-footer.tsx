@@ -101,13 +101,13 @@ export function HistoryFooter({
               {t("viewer.history.title")}
             </span>
             {historyStrip.length > 0 && (
-              <span className="text-muted-foreground/70 text-[10px] tabular-nums">
+              <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
                 {historyGroups.length}
               </span>
             )}
           </button>
           {isGenerating && (
-            <div className="text-primary mr-auto ml-2 flex items-center gap-1.5 text-[11px] font-medium">
+            <div className="text-primary mr-auto ml-2 flex items-center gap-1.5 text-[0.6875rem] font-medium">
               <Loader2 className="size-3.5 shrink-0 animate-spin" aria-hidden />
               <span>
                 {generatingProgress && generatingProgress.total > 1
@@ -151,7 +151,7 @@ export function HistoryFooter({
                       className="text-primary size-6 animate-spin"
                       aria-hidden
                     />
-                    <span className="text-primary text-[10px] font-medium tabular-nums">
+                    <span className="text-primary font-mono text-[0.625rem] font-medium tabular-nums">
                       {generatingProgress && generatingProgress.total > 1
                         ? `${Math.min(generatingProgress.done + 1, generatingProgress.total)}/${generatingProgress.total}`
                         : t("viewer.history.generating")}
@@ -189,7 +189,7 @@ export function HistoryFooter({
                         {visible.map((img) => (
                           <div
                             key={img.id}
-                            className="bg-muted relative overflow-hidden rounded-[3px]"
+                            className="bg-muted relative overflow-hidden rounded-[0.1875rem]"
                           >
                             <img
                               src={resolveSrc(img)}
@@ -203,12 +203,12 @@ export function HistoryFooter({
                         {Array.from({ length: emptyCount }).map((_, i) => (
                           <div
                             key={`e-${i}`}
-                            className="bg-muted/40 rounded-[3px]"
+                            className="bg-muted/40 rounded-[0.1875rem]"
                           />
                         ))}
                       </div>
                       {hasMore && (
-                        <div className="bg-foreground/85 text-background absolute top-1 right-1 inline-flex items-center gap-0.5 rounded-full py-0.5 pr-1.5 pl-1 text-[10px] leading-none font-semibold tabular-nums">
+                        <div className="bg-foreground/85 text-background absolute top-1 right-1 inline-flex items-center gap-0.5 rounded-full py-0.5 pr-1.5 pl-1 font-mono text-[0.625rem] leading-none font-semibold tabular-nums">
                           <Layers className="size-2.5" strokeWidth={2.5} />
                           {total}
                         </div>

@@ -113,12 +113,12 @@ export function CharacterPlacementGrid({
         {active ? (
           <>
             <Occupant entry={active} index={activeIndex} active />
-            <span className="min-w-0 flex-1 truncate text-[11px] font-medium">
+            <span className="min-w-0 flex-1 truncate text-[0.6875rem] font-medium">
               {active.label}
             </span>
             {active.position ? (
               <>
-                <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
+                <span className="text-muted-foreground shrink-0 font-mono text-[0.625rem] tabular-nums">
                   {describePosition(active.position, freeform)}
                 </span>
                 <Button
@@ -136,13 +136,13 @@ export function CharacterPlacementGrid({
                 </Button>
               </>
             ) : (
-              <span className="text-muted-foreground/70 shrink-0 text-[10px]">
+              <span className="text-muted-foreground/70 shrink-0 text-[0.625rem]">
                 {t("generate.placement.none")}
               </span>
             )}
           </>
         ) : (
-          <span className="text-muted-foreground text-[11px]">
+          <span className="text-muted-foreground text-[0.6875rem]">
             {t("generate.placement.hintEmpty")}
           </span>
         )}
@@ -275,7 +275,7 @@ export function CharacterPlacementGrid({
       {/* Only until the first one is placed. The auto-advance is worth saying
           once; repeating it forever turns instructions into furniture. */}
       {active && untouched && (
-        <p className="text-muted-foreground/80 text-[10px] leading-snug">
+        <p className="text-muted-foreground/80 text-[0.625rem] leading-snug">
           {t(
             freeform ? "generate.placement.hintFree" : "generate.placement.hint"
           )}
@@ -316,7 +316,7 @@ function Occupant({
   return (
     <span
       className={cn(
-        "flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px] font-semibold tabular-nums",
+        "flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[0.625rem] font-semibold tabular-nums",
         active
           ? "bg-primary text-primary-foreground"
           : "bg-muted-foreground/60 text-background"

@@ -46,12 +46,14 @@ type Props = {
 
 /** Aspect-ratio preview shown inside each resolution button. */
 function SizePreview({ width, height }: { width: number; height: number }) {
-  const max = 20;
+  // The longest edge in rem, so the swatch grows with the root font size like
+  // the button around it.
+  const max = 1.25;
   const scale = max / Math.max(width, height);
   return (
     <span
-      className="border-current/40 block rounded-[2px] border"
-      style={{ width: width * scale, height: height * scale }}
+      className="border-current/40 block rounded-[0.125rem] border"
+      style={{ width: `${width * scale}rem`, height: `${height * scale}rem` }}
       aria-hidden
     />
   );
@@ -136,7 +138,7 @@ export function SizeField({ form, update }: Props) {
               onClick={() => update({ size: option.value })}
             >
               <SizePreview width={option.w} height={option.h} />
-              <span className="text-[10px] font-medium">
+              <span className="text-[0.625rem] font-medium">
                 {t(option.labelKey as MessageKey)}
               </span>
             </Button>
@@ -159,7 +161,7 @@ export function SizeField({ form, update }: Props) {
             width={usingOther ? current.w : 1024}
             height={usingOther ? current.h : 1024}
           />
-          <span className="text-[10px] font-medium">
+          <span className="text-[0.625rem] font-medium">
             {t("generate.size.other")}
           </span>
         </Button>
@@ -190,7 +192,7 @@ export function SizeField({ form, update }: Props) {
         </Select>
       )}
 
-      <p className="text-muted-foreground font-mono text-[10px] tabular-nums">
+      <p className="text-muted-foreground font-mono text-[0.625rem] tabular-nums">
         {current.w} × {current.h}
       </p>
     </div>

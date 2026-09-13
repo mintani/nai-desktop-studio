@@ -165,20 +165,14 @@ export function SituationPickerDialog({
                 return (
                   <div
                     key={section.key}
-                    className={cn(
-                      "overflow-hidden rounded-md border transition-[border-color] duration-150 ease-out",
-                      all || some ? "border-primary" : "border-border"
-                    )}
+                    className="overflow-hidden rounded-md border"
                   >
                     <div className="flex items-center">
                       <button
                         type="button"
                         onClick={() => toggleGroup(ids, !all)}
                         aria-pressed={all}
-                        className={cn(
-                          "focus-visible:ring-ring/50 flex min-w-0 flex-1 items-center gap-2 px-2.5 py-2 text-left outline-none focus-visible:ring-1",
-                          all && "bg-secondary"
-                        )}
+                        className="focus-visible:ring-ring/50 flex min-w-0 flex-1 items-center gap-2 px-2.5 py-2 text-left outline-none focus-visible:ring-1"
                       >
                         <Checkbox
                           checked={all}
@@ -189,7 +183,7 @@ export function SituationPickerDialog({
                         <span className="min-w-0 flex-1 truncate text-xs font-medium">
                           {section.name}
                         </span>
-                        <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
+                        <span className="text-muted-foreground shrink-0 font-mono text-[0.625rem] tabular-nums">
                           {chosen.length > 0 ? `${chosen.length}/` : ""}
                           {ids.length}
                         </span>
@@ -230,10 +224,7 @@ export function SituationPickerDialog({
                               type="button"
                               onClick={() => toggleOne(situation.id)}
                               aria-pressed={selected}
-                              className={cn(
-                                "focus-visible:ring-ring/50 flex w-full items-center gap-2 px-2.5 py-1.5 text-left outline-none focus-visible:ring-1",
-                                selected ? "bg-secondary" : "hover:bg-muted/50"
-                              )}
+                              className="focus-visible:ring-ring/50 hover:bg-muted/50 flex w-full items-center gap-2 px-2.5 py-1.5 text-left outline-none focus-visible:ring-1"
                             >
                               <Checkbox
                                 checked={selected}
@@ -244,7 +235,7 @@ export function SituationPickerDialog({
                                 <span className="truncate text-xs">
                                   {situation.name}
                                 </span>
-                                <span className="text-muted-foreground truncate font-mono text-[10px]">
+                                <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
                                   {preview || t("situations.noPrompt")}
                                 </span>
                               </span>
@@ -261,7 +252,7 @@ export function SituationPickerDialog({
         </div>
 
         <div className="flex items-center justify-between border-t pt-3">
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground font-mono text-[0.6875rem] tabular-nums">
             {t("generate.situationPicker.selectedCount", {
               count: selectedIds.length,
             })}

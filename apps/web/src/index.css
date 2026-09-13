@@ -4,5 +4,10 @@
  * them. Now the faces are bundled, so the app names them here. */
 :root {
   --font-poppins: "Poppins", sans-serif;
-  --font-jetbrains-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  /* JetBrains Mono has no Japanese glyphs, and a number often shares its span
+   * with a word ("残り 1,200 Anlas"). The kana and kanji fall through to the
+   * body's Japanese stack rather than the browser's generic monospace, the
+   * same way Poppins falls back for display text. */
+  --font-jetbrains-mono:
+    "JetBrains Mono Variable", ui-monospace, var(--font-body);
 }

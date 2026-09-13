@@ -47,7 +47,7 @@ export function ReferenceEntryEditor({ entry, groupOptions, onChange }: Props) {
         </span>
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="bg-muted rounded-full border px-2 py-0.5 text-[10px]">
+            <span className="bg-muted rounded-full border px-2 py-0.5 text-[0.625rem]">
               {t(REFERENCE_KIND_LABEL_KEYS[entry.kind] as MessageKey)}
             </span>
             <ReferenceEntryStatus entry={entry} />

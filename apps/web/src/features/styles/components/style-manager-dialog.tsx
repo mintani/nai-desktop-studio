@@ -124,7 +124,7 @@ export function StyleManagerDialog({ open, onOpenChange }: Props) {
               <div className="flex items-center justify-between gap-2 pr-8">
                 <div className="space-y-0.5">
                   <DialogTitle>{t("styles.title")}</DialogTitle>
-                  <p className="text-muted-foreground text-xs tabular-nums">
+                  <p className="text-muted-foreground font-mono text-xs tabular-nums">
                     {t("styles.subtitle", { count: styles.length })}
                   </p>
                 </div>
@@ -171,7 +171,7 @@ export function StyleManagerDialog({ open, onOpenChange }: Props) {
                   <div className="space-y-4">
                     {sections.map((section) => (
                       <section key={section.key} className="space-y-2">
-                        <h4 className="text-muted-foreground text-[11px] font-medium">
+                        <h4 className="text-muted-foreground text-[0.6875rem] font-medium">
                           {section.name ?? t("group.none")}
                         </h4>
                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">

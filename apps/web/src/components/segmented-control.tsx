@@ -58,7 +58,7 @@ export function SegmentedControl<T extends string>({
                 ? "cursor-not-allowed opacity-40"
                 : selected
                   ? "bg-secondary text-secondary-foreground shadow-segment"
-                  : "text-muted-foreground hover:bg-accent/40 hover:text-foreground"
+                  : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
             )}
           >
             {option.label}

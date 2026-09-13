@@ -37,7 +37,7 @@ export function CharacterCard({
       className={cn(
         "group flex items-stretch rounded-sm border transition-colors",
         selected
-          ? "border-primary bg-muted/50"
+          ? "border-primary bg-secondary"
           : "border-border hover:bg-muted/30"
       )}
     >
@@ -56,7 +56,7 @@ export function CharacterCard({
           </span>
           {preview ? (
             <span
-              className="text-muted-foreground truncate font-mono text-[10px]"
+              className="text-muted-foreground truncate font-mono text-[0.625rem]"
               title={preview}
             >
               {preview}

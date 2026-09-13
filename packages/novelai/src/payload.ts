@@ -5,7 +5,7 @@ import {
   UC_PRESET_TEXT,
   V5_UC_PRESET_TEXT,
 } from "./constants";
-import { isV4Model, isV45Model, isV5Model } from "./schemas";
+import { isV4Model, isV45Model, isV5Model, isVibeModel } from "./schemas";
 import type {
   CharacterPosition,
   EncodeVibeBody,
@@ -172,6 +172,35 @@ function getStreamMode(body: GenerateImageBody | GenerateImageStreamBody) {
 }
 
 /**
+ * The encoded vibes a request carries. An image that arrives already encoded
+ * (style and library vibes are encoded when saved) is passed through; the
+ * rest are encoded against the generation model, which therefore has to be
+ * one that takes vibes at all.
+ */
+async function encodeControlnetImages(
+  images: NonNullable<GenerateImageBody["controlnet"]>["images"],
+  model: ImageModel,
+  encodeVibe: (request: EncodeVibeBody) => Promise<string>
+) {
+  if (!isVibeModel(model)) {
+    throw new Error("Vibe transfer is not supported for V5 models");
+  }
+  return Promise.all(
+    images.map(async (img) => {
+      if (img.encoded !== undefined) return img.encoded;
+      if (img.image === undefined) {
+        throw new Error("controlnet image requires image or encoded");
+      }
+      return encodeVibe({
+        image: img.image,
+        information_extracted: img.info_extracted ?? 0.7,
+        model: img.controlnet_model ?? model,
+      });
+    })
+  );
+}
+
+/**
  * Build the payload for NovelAI's /ai/generate-image. Vibes (controlnet) need
  * encoding at generation time, so the caller injects encodeVibe.
  */
@@ -200,9 +229,6 @@ export async function buildGeneratePayload(
   if (body.character_references?.length && !isV45Model(model)) {
     throw new Error("Character references are only supported for V4.5 models");
   }
-  if (body.controlnet && isV5Model(model)) {
-    throw new Error("Vibe transfer is not supported for V5 models");
-  }
   // Checked against the effective model: V5 Curated inpaints really run on
   // V4.5 Curated, which does not take the transparency parameters.
   if (
@@ -221,21 +247,7 @@ export async function buildGeneratePayload(
   const source = body.i2i ?? body.inpaint;
 
   const referenceImageMultiple = body.controlnet
-    ? await Promise.all(
-        body.controlnet.images.map(async (img) => {
-          // Skip re-encoding if already encoded (style vibes are encoded when
-          // registered).
-          if (img.encoded !== undefined) return img.encoded;
-          if (img.image === undefined) {
-            throw new Error("controlnet image requires image or encoded");
-          }
-          return encodeVibe({
-            image: img.image,
-            information_extracted: img.info_extracted ?? 0.7,
-            model: img.controlnet_model ?? model,
-          });
-        })
-      )
+    ? await encodeControlnetImages(body.controlnet.images, model, encodeVibe)
     : undefined;
 
   const directorReferences = body.character_references

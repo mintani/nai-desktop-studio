@@ -253,14 +253,24 @@ export function GenerateWorkspace() {
         vibes: [],
       };
     }
-    // A model with no vibe support (V5) leaves the style's vibes unused, the
-    // same way its references go unused on a pre-V4.5 model.
     if (loaded.vibes.length > 0 && supportsVibes(model)) {
       return {
         referenceMode: "vibe" as const,
         vibes: loaded.vibes,
         references: [],
       };
+    }
+    // The style has images but this model takes none of them: V5 has no
+    // vibe transfer, and anything before V4.5 no precise reference. Say so
+    // rather than run as if the style never had them.
+    if (loaded.vibes.length > 0 || loaded.references.length > 0) {
+      toast.warning(
+        t("generate.template.referencesUnsupported", {
+          model:
+            MODEL_OPTIONS.find((option) => option.value === model)?.label ??
+            model,
+        })
+      );
     }
     return {};
   }

@@ -67,7 +67,7 @@ function Section({
         <span className="flex items-center gap-2 text-xs font-medium">
           {title}
           {badge && (
-            <span className="bg-muted text-muted-foreground rounded-pill px-1.5 py-0.5 font-mono text-[10px] tabular-nums">
+            <span className="bg-muted text-muted-foreground rounded-pill px-1.5 py-0.5 font-mono text-[0.625rem] tabular-nums">
               {badge}
             </span>
           )}
@@ -245,7 +245,7 @@ export function GeneratePanel({
               <WandSparkles className="size-4" />
               {t("generate.run")}
             </span>
-            <span className="font-mono text-[10px] font-semibold tabular-nums opacity-80">
+            <span className="font-mono text-[0.625rem] font-semibold tabular-nums opacity-80">
               {anlasText ?? <Loader2 className="size-3 animate-spin" />}
             </span>
           </Button>

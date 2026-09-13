@@ -88,7 +88,7 @@ export function CharactersSection({
           )}
         >
           <div className="flex items-center justify-between">
-            <span className="text-muted-foreground font-display flex items-center gap-1.5 text-[11px] font-medium">
+            <span className="text-muted-foreground font-display flex items-center gap-1.5 text-[0.6875rem] font-medium">
               {t("generate.character.n", { index: index + 1 })}
               {character.position && (
                 <span className="font-mono tabular-nums">

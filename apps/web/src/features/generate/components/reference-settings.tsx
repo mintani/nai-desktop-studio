@@ -422,7 +422,7 @@ export function ReferenceSettings({ form, update }: Props) {
   return (
     <div className="space-y-4">
       <section className="space-y-2">
-        <h4 className="text-muted-foreground text-[11px] font-medium">
+        <h4 className="text-muted-foreground text-[0.6875rem] font-medium">
           {t("reference.i2i.title")}
         </h4>
         {form.i2i ? (
@@ -448,10 +448,10 @@ export function ReferenceSettings({ form, update }: Props) {
           block folds into one line saying so. i2i above still works. */}
       {!supportsReferenceImages(form.model) ? (
         <section className="space-y-2">
-          <h4 className="text-muted-foreground text-[11px] font-medium">
+          <h4 className="text-muted-foreground text-[0.6875rem] font-medium">
             {t("reference.mode.label")}
           </h4>
-          <p className="text-muted-foreground text-[10px] leading-tight">
+          <p className="text-muted-foreground text-[0.625rem] leading-tight">
             {t("reference.noneOnV5")}
           </p>
         </section>
@@ -474,7 +474,7 @@ export function ReferenceSettings({ form, update }: Props) {
           />
 
           {!referenceAvailable && (
-            <p className="text-muted-foreground text-[10px] leading-tight">
+            <p className="text-muted-foreground text-[0.625rem] leading-tight">
               {t("reference.onlyV45")}
             </p>
           )}
@@ -564,7 +564,7 @@ export function ReferenceSettings({ form, update }: Props) {
                 {picked.map((entry) => (
                   <li
                     key={entry.id}
-                    className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-1.5 text-[10px]"
+                    className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-1.5 text-[0.625rem]"
                   >
                     <img
                       src={referenceImageUrl(entry.id)}

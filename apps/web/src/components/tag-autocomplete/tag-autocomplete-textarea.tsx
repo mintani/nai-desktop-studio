@@ -329,7 +329,7 @@ export function TagAutocompleteTextarea({
                   <span className="text-primary truncate font-mono font-medium">
                     {`{${option.name}}`}
                   </span>
-                  <span className="text-muted-foreground shrink-0 text-[10px]">
+                  <span className="text-muted-foreground shrink-0 text-[0.625rem]">
                     {t("tag.token")}
                   </span>
                 </>
@@ -347,13 +347,13 @@ export function TagAutocompleteTextarea({
                         ? `artist:${option.tag.name}`
                         : option.tag.name}
                     </span>
-                    <span className="text-muted-foreground truncate text-[10px]">
+                    <span className="text-muted-foreground truncate text-[0.625rem]">
                       {CATEGORY_LABELS[option.tag.categoryId] ?? ""}
                     </span>
                   </span>
                   <Badge
                     variant="outline"
-                    className="shrink-0 font-mono text-[9px] tracking-normal normal-case tabular-nums"
+                    className="shrink-0 font-mono text-[0.5625rem] tracking-normal normal-case tabular-nums"
                   >
                     {formatCount(option.tag.count)}
                   </Badge>

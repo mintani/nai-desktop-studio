@@ -70,7 +70,7 @@ function OverrideRow({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <Label className="text-[11px]">{label}</Label>
+        <Label className="text-[0.6875rem]">{label}</Label>
         <Switch
           size="sm"
           checked={enabled}
@@ -275,7 +275,7 @@ export function StyleParamOverrides({ params, onChange }: Props) {
               })
             }
           >
-            <label className="flex w-fit items-center gap-2 rounded-sm border px-2 py-1 text-[11px]">
+            <label className="flex w-fit items-center gap-2 rounded-sm border px-2 py-1 text-[0.6875rem]">
               <Checkbox
                 checked={params.varietyBoost ?? false}
                 onCheckedChange={(checked) =>

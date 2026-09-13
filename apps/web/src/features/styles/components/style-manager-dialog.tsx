@@ -171,7 +171,7 @@ export function StyleManagerDialog({ open, onOpenChange }: Props) {
                   <div className="space-y-4">
                     {sections.map((section) => (
                       <section key={section.key} className="space-y-2">
-                        <h4 className="text-muted-foreground text-[11px] font-medium">
+                        <h4 className="text-muted-foreground text-[0.6875rem] font-medium">
                           {section.name ?? t("group.none")}
                         </h4>
                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">

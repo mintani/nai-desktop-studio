@@ -163,7 +163,7 @@ export function TemplateSection({
             {groupSummary.map((group) => (
               <span
                 key={group.name}
-                className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-2 text-[10px]"
+                className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-2 text-[0.625rem]"
               >
                 <span className="truncate">{group.name}</span>
                 <span className="text-muted-foreground shrink-0 font-mono tabular-nums">
@@ -236,7 +236,7 @@ export function TemplateSection({
         </span>
       </PickerRow>
 
-      <p className="text-muted-foreground text-[11px] leading-snug">
+      <p className="text-muted-foreground text-[0.6875rem] leading-snug">
         {total > 0
           ? t("generate.template.total", {
               count: total,

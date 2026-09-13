@@ -56,7 +56,7 @@ export function CharacterCard({
           </span>
           {preview ? (
             <span
-              className="text-muted-foreground truncate font-mono text-[10px]"
+              className="text-muted-foreground truncate font-mono text-[0.625rem]"
               title={preview}
             >
               {preview}

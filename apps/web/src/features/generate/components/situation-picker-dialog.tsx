@@ -183,7 +183,7 @@ export function SituationPickerDialog({
                         <span className="min-w-0 flex-1 truncate text-xs font-medium">
                           {section.name}
                         </span>
-                        <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
+                        <span className="text-muted-foreground shrink-0 font-mono text-[0.625rem] tabular-nums">
                           {chosen.length > 0 ? `${chosen.length}/` : ""}
                           {ids.length}
                         </span>
@@ -235,7 +235,7 @@ export function SituationPickerDialog({
                                 <span className="truncate text-xs">
                                   {situation.name}
                                 </span>
-                                <span className="text-muted-foreground truncate font-mono text-[10px]">
+                                <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
                                   {preview || t("situations.noPrompt")}
                                 </span>
                               </span>
@@ -252,7 +252,7 @@ export function SituationPickerDialog({
         </div>
 
         <div className="flex items-center justify-between border-t pt-3">
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground font-mono text-[0.6875rem] tabular-nums">
             {t("generate.situationPicker.selectedCount", {
               count: selectedIds.length,
             })}

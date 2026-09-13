@@ -25,7 +25,7 @@ export function ReferenceEntryStatus({ entry }: { entry: ReferenceEntry }) {
   return (
     <span
       className={cn(
-        "flex items-center gap-1 font-mono text-[10px]",
+        "flex items-center gap-1 font-mono text-[0.625rem]",
         entry.kind === "vibe" && !entry.encodedAt
           ? "text-primary"
           : "text-muted-foreground"
@@ -104,7 +104,7 @@ export function ReferenceEntryFields({ entry, groupOptions, onPatch }: Props) {
             step={0.01}
             onChange={(infoExtracted) => onPatch({ infoExtracted })}
           />
-          <p className="text-muted-foreground/80 text-[10px] leading-relaxed">
+          <p className="text-muted-foreground/80 text-[0.625rem] leading-relaxed">
             {t("referenceLibrary.infoExtractedHint")}
           </p>
         </div>

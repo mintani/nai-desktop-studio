@@ -8,7 +8,7 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "font-display text-[15px] font-semibold tracking-tight",
+        "font-display text-[0.9375rem] font-semibold tracking-tight",
         className
       )}
     >

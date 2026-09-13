@@ -210,7 +210,7 @@ export function CharacterPickerDialog({
                     <section key={section.key} className="space-y-2">
                       <div className="flex items-center gap-1.5 border-b pb-1">
                         <h3 className="text-xs font-medium">{section.name}</h3>
-                        <span className="text-muted-foreground/70 font-mono text-[10px] tabular-nums">
+                        <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
                           {section.items.length}
                         </span>
                       </div>
@@ -249,12 +249,12 @@ export function CharacterPickerDialog({
                                 >
                                   {character.name}
                                 </span>
-                                <span className="text-muted-foreground truncate font-mono text-[10px]">
+                                <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
                                   {preview || t("generate.picker.noPrompt")}
                                 </span>
                               </span>
                               {selected && (
-                                <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full font-mono text-[10px] font-semibold tabular-nums ring-2">
+                                <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full font-mono text-[0.625rem] font-semibold tabular-nums ring-2">
                                   {order + 1}
                                 </span>
                               )}
@@ -273,7 +273,7 @@ export function CharacterPickerDialog({
               scroll container keeps a little padding for it. */}
           <div className="w-80 shrink-0 space-y-3 overflow-y-auto border-l py-1 pr-1 pl-3">
             {picked.length === 0 ? (
-              <p className="text-muted-foreground rounded-md border border-dashed p-3 text-center text-[11px] leading-relaxed">
+              <p className="text-muted-foreground rounded-md border border-dashed p-3 text-center text-[0.6875rem] leading-relaxed">
                 {t("generate.picker.emptySelection")}
               </p>
             ) : (
@@ -320,7 +320,7 @@ export function CharacterPickerDialog({
         </div>
 
         <div className="flex items-center justify-between border-t pt-3">
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground font-mono text-[0.6875rem] tabular-nums">
             {t("generate.picker.selectedCount", { count: picked.length })}
           </span>
           <div className="flex gap-2">

@@ -78,7 +78,7 @@ export function SelectedCharacterList({
                 className="size-7 rounded-sm border"
               />
             )}
-            <span className="min-w-0 flex-1 truncate text-[11px] font-medium">
+            <span className="min-w-0 flex-1 truncate text-[0.6875rem] font-medium">
               {character?.name ?? t("generate.picker.missing")}
             </span>
           </>
@@ -95,7 +95,7 @@ export function SelectedCharacterList({
             )}
           >
             <div className="flex items-center gap-1">
-              <span className="bg-primary text-primary-foreground flex size-4 shrink-0 items-center justify-center rounded-full font-mono text-[9px] font-semibold tabular-nums">
+              <span className="bg-primary text-primary-foreground flex size-4 shrink-0 items-center justify-center rounded-full font-mono text-[0.5625rem] font-semibold tabular-nums">
                 {index + 1}
               </span>
               {onActiveChange ? (
@@ -115,7 +115,7 @@ export function SelectedCharacterList({
               {/* Only when placed. "Anywhere" on every row would be noise, and the
                 grid already shows who is on it. */}
               {entry.position && (
-                <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
+                <span className="text-muted-foreground shrink-0 font-mono text-[0.625rem] tabular-nums">
                   {describePosition(entry.position, freeform)}
                 </span>
               )}

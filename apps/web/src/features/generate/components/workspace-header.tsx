@@ -95,7 +95,7 @@ export function WorkspaceHeader({
         </Button>
         <Wordmark />
         {subscription && (
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground font-mono text-[0.6875rem] tabular-nums">
             {t("unit.anlas", { count: subscription.anlas.toLocaleString() })}
           </span>
         )}
@@ -117,7 +117,7 @@ export function WorkspaceHeader({
             >
               <WandSparkles className="size-4" />
               {t("generate.run")}
-              <span className="font-mono text-[10px] font-semibold tabular-nums opacity-80">
+              <span className="font-mono text-[0.625rem] font-semibold tabular-nums opacity-80">
                 {anlasText ?? <Loader2 className="size-3 animate-spin" />}
               </span>
             </Button>
@@ -156,7 +156,7 @@ export function WorkspaceHeader({
                 type="button"
                 onClick={() => onTileSizeChange(size.value)}
                 className={cn(
-                  "rounded-pill font-display px-2 py-1 text-[11px] font-medium transition-colors duration-150 ease-out",
+                  "rounded-pill font-display px-2 py-1 text-[0.6875rem] font-medium transition-colors duration-150 ease-out",
                   tileSize === size.value
                     ? "bg-secondary text-secondary-foreground shadow-segment"
                     : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"

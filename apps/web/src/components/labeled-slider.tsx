@@ -45,7 +45,7 @@ export function LabeledSlider({
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <Label className="text-[11px]">{label}</Label>
-        <span className="text-muted-foreground text-[11px] tabular-nums">
+        <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
           {format ? format(value) : value}
         </span>
       </div>

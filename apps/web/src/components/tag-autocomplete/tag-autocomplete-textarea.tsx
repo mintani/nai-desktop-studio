@@ -353,7 +353,7 @@ export function TagAutocompleteTextarea({
                   </span>
                   <Badge
                     variant="outline"
-                    className="shrink-0 text-[9px] tabular-nums"
+                    className="shrink-0 font-mono text-[9px] tracking-normal normal-case tabular-nums"
                   >
                     {formatCount(option.tag.count)}
                   </Badge>

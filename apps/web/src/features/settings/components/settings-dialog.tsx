@@ -140,7 +140,7 @@ export function SettingsDialog({ open, onOpenChange }: Props) {
                 {t("settings.account.title")}
               </h3>
               {subscription && (
-                <span className="text-muted-foreground text-xs tabular-nums">
+                <span className="text-muted-foreground font-mono text-xs tabular-nums">
                   {t("settings.account.anlasRemaining", {
                     count: subscription.anlas.toLocaleString(),
                   })}

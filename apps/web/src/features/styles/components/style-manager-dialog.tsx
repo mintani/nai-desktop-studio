@@ -124,7 +124,7 @@ export function StyleManagerDialog({ open, onOpenChange }: Props) {
               <div className="flex items-center justify-between gap-2 pr-8">
                 <div className="space-y-0.5">
                   <DialogTitle>{t("styles.title")}</DialogTitle>
-                  <p className="text-muted-foreground text-xs tabular-nums">
+                  <p className="text-muted-foreground font-mono text-xs tabular-nums">
                     {t("styles.subtitle", { count: styles.length })}
                   </p>
                 </div>

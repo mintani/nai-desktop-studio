@@ -286,7 +286,7 @@ export function ImageLightbox({
       </button>
 
       {images.length > 1 && (
-        <span className="absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white/90 tabular-nums">
+        <span className="absolute top-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/10 px-2.5 py-0.5 font-mono text-xs font-medium text-white/90 tabular-nums">
           {index + 1} / {images.length}
         </span>
       )}
@@ -367,15 +367,15 @@ export function ImageLightbox({
             <dt className="text-white/60">{t("viewer.info.model")}</dt>
             <dd>{current.model}</dd>
             <dt className="text-white/60">{t("viewer.info.size")}</dt>
-            <dd className="tabular-nums">
+            <dd className="font-mono tabular-nums">
               {current.width}×{current.height}
             </dd>
             <dt className="text-white/60">{t("viewer.info.seed")}</dt>
-            <dd className="tabular-nums">{current.seed}</dd>
+            <dd className="font-mono tabular-nums">{current.seed}</dd>
             <dt className="text-white/60">{t("viewer.info.steps")}</dt>
-            <dd className="tabular-nums">{current.steps}</dd>
+            <dd className="font-mono tabular-nums">{current.steps}</dd>
             <dt className="text-white/60">{t("viewer.info.scale")}</dt>
-            <dd className="tabular-nums">{current.scale}</dd>
+            <dd className="font-mono tabular-nums">{current.scale}</dd>
             <dt className="text-white/60">{t("viewer.info.sampler")}</dt>
             <dd>{current.sampler}</dd>
             <dt className="text-white/60">{t("viewer.info.createdAt")}</dt>

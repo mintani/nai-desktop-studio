@@ -101,7 +101,7 @@ export function HistoryFooter({
               {t("viewer.history.title")}
             </span>
             {historyStrip.length > 0 && (
-              <span className="text-muted-foreground/70 text-[10px] tabular-nums">
+              <span className="text-muted-foreground/70 font-mono text-[10px] tabular-nums">
                 {historyGroups.length}
               </span>
             )}
@@ -151,7 +151,7 @@ export function HistoryFooter({
                       className="text-primary size-6 animate-spin"
                       aria-hidden
                     />
-                    <span className="text-primary text-[10px] font-medium tabular-nums">
+                    <span className="text-primary font-mono text-[10px] font-medium tabular-nums">
                       {generatingProgress && generatingProgress.total > 1
                         ? `${Math.min(generatingProgress.done + 1, generatingProgress.total)}/${generatingProgress.total}`
                         : t("viewer.history.generating")}
@@ -208,7 +208,7 @@ export function HistoryFooter({
                         ))}
                       </div>
                       {hasMore && (
-                        <div className="bg-foreground/85 text-background absolute top-1 right-1 inline-flex items-center gap-0.5 rounded-full py-0.5 pr-1.5 pl-1 text-[10px] leading-none font-semibold tabular-nums">
+                        <div className="bg-foreground/85 text-background absolute top-1 right-1 inline-flex items-center gap-0.5 rounded-full py-0.5 pr-1.5 pl-1 font-mono text-[10px] leading-none font-semibold tabular-nums">
                           <Layers className="size-2.5" strokeWidth={2.5} />
                           {total}
                         </div>

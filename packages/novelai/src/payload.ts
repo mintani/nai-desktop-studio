@@ -299,13 +299,19 @@ export async function buildGeneratePayload(
       sampler: body.sampler ?? "k_euler_ancestral",
       seed: body.seed ?? Math.floor(Math.random() * 1_000_000_000),
       n_samples: body.n_samples ?? 1,
-      noise_schedule: body.noise_schedule ?? "karras",
+      // V5 has no noise schedule: the official app drops the field for it.
+      noise_schedule: isV5Model(effectiveModel)
+        ? undefined
+        : (body.noise_schedule ?? "karras"),
       prompt: isV4Model(model) ? undefined : prompt,
       negative_prompt: negativePrompt,
       qualityToggle: body.quality ?? true,
       ucPreset: UC_PRESET_INT[body.uc_preset ?? "light"],
       cfg_rescale: body.cfg_rescale ?? 0,
-      skip_cfg_above_sigma: body.variety_boost ? 58 : undefined,
+      // Variety+ is not offered on V5 (the official app deletes the field), so
+      // the flag is ignored there rather than sent.
+      skip_cfg_above_sigma:
+        body.variety_boost && !isV5Model(effectiveModel) ? 58 : undefined,
       // Only sent when set: JSON.stringify drops undefined, and older models
       // reject the fields.
       straight_alpha: body.straight_alpha || undefined,

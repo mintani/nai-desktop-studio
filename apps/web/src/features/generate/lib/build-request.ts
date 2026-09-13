@@ -29,6 +29,16 @@ export function supportsTransparency(model: string) {
   return model.startsWith("nai-diffusion-5");
 }
 
+/** V5 has no noise schedule; the official app drops the field for it. */
+export function supportsNoiseSchedule(model: string) {
+  return !model.startsWith("nai-diffusion-5");
+}
+
+/** Variety+ (skip_cfg_above_sigma) is not offered on V5. */
+export function supportsVarietyBoost(model: string) {
+  return !model.startsWith("nai-diffusion-5");
+}
+
 /** Whether the model can take reference images at all (vibe or precise). */
 export function supportsReferenceImages(model: string) {
   return supportsVibes(model) || supportsReferences(model);
@@ -128,14 +138,20 @@ export function buildGenerateRequest(
     model: form.model,
     size: form.size,
     sampler: form.sampler,
-    noise_schedule: form.noiseSchedule,
+    // The panel hides these on a model without them, but the form still holds
+    // a value, so the request leaves them out on the same condition.
+    ...(supportsNoiseSchedule(form.model)
+      ? { noise_schedule: form.noiseSchedule }
+      : {}),
     uc_preset: form.ucPreset,
     steps: form.steps,
     scale: form.scale,
     cfg_rescale: form.cfgRescale,
     ...(baseSeed === null ? {} : { seed: baseSeed + index }),
     quality: form.quality,
-    variety_boost: form.varietyBoost,
+    ...(supportsVarietyBoost(form.model)
+      ? { variety_boost: form.varietyBoost }
+      : {}),
     // One switch drives both fields. straight_alpha only picks how the alpha
     // channel is written (straight is the official app's default), and without
     // the background tag that channel is opaque anyway, so the two travel

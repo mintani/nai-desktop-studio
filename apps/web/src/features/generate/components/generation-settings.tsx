@@ -27,7 +27,11 @@ import {
   SIZE_OPTIONS,
   UC_PRESET_OPTIONS,
 } from "../constants";
-import { supportsTransparency } from "../lib/build-request";
+import {
+  supportsNoiseSchedule,
+  supportsTransparency,
+  supportsVarietyBoost,
+} from "../lib/build-request";
 import type {
   FormState,
   NoiseSchedule,
@@ -279,7 +283,14 @@ export function AdvancedSettings({ form, update }: Props) {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      {/* The noise schedule only exists up to V4.5; on V5 the sampler takes
+          the whole row rather than leaving a hole beside it. */}
+      <div
+        className={cn(
+          "grid gap-3",
+          supportsNoiseSchedule(form.model) && "sm:grid-cols-2"
+        )}
+      >
         <div className="space-y-1.5">
           <Label htmlFor="sampler">{t("generate.sampler")}</Label>
           <Select
@@ -310,31 +321,35 @@ export function AdvancedSettings({ form, update }: Props) {
           </Select>
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="noise-schedule">{t("generate.noiseSchedule")}</Label>
-          <Select
-            value={form.noiseSchedule}
-            onValueChange={(value) => {
-              if (
-                typeof value === "string" &&
-                NOISE_SCHEDULE_OPTIONS.some((option) => option === value)
-              ) {
-                update({ noiseSchedule: value as NoiseSchedule });
-              }
-            }}
-          >
-            <SelectTrigger id="noise-schedule" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {NOISE_SCHEDULE_OPTIONS.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {supportsNoiseSchedule(form.model) && (
+          <div className="space-y-1.5">
+            <Label htmlFor="noise-schedule">
+              {t("generate.noiseSchedule")}
+            </Label>
+            <Select
+              value={form.noiseSchedule}
+              onValueChange={(value) => {
+                if (
+                  typeof value === "string" &&
+                  NOISE_SCHEDULE_OPTIONS.some((option) => option === value)
+                ) {
+                  update({ noiseSchedule: value as NoiseSchedule });
+                }
+              }}
+            >
+              <SelectTrigger id="noise-schedule" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {NOISE_SCHEDULE_OPTIONS.map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -376,16 +391,18 @@ export function AdvancedSettings({ form, update }: Props) {
             onCheckedChange={(quality) => update({ quality })}
           />
         </div>
-        <div className="flex items-center justify-between">
-          <Label htmlFor="variety-toggle" className="font-normal">
-            {t("generate.varietyBoost")}
-          </Label>
-          <Switch
-            id="variety-toggle"
-            checked={form.varietyBoost}
-            onCheckedChange={(varietyBoost) => update({ varietyBoost })}
-          />
-        </div>
+        {supportsVarietyBoost(form.model) && (
+          <div className="flex items-center justify-between">
+            <Label htmlFor="variety-toggle" className="font-normal">
+              {t("generate.varietyBoost")}
+            </Label>
+            <Switch
+              id="variety-toggle"
+              checked={form.varietyBoost}
+              onCheckedChange={(varietyBoost) => update({ varietyBoost })}
+            />
+          </div>
+        )}
         {supportsTransparency(form.model) && (
           <div className="flex items-center justify-between">
             <Label htmlFor="transparent-toggle" className="font-normal">

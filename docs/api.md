@@ -69,6 +69,19 @@ event: done      data: { "type": "done" }
 event: error     data: { "type": "error", "message": "..." }
 ```
 
+### V5 系モデルの扱い
+
+公式 Web アプリがモデルごとに持つ能力テーブルに合わせている。
+
+- バイブ転送・精密参照は送れない。V5 で `controlnet` / `character_references` を送ると 400。
+  `/novelai/encode-vibe` も V5 のモデル名を受け付けない。エンコード結果はモデル固有なので、
+  V5 向けに作っても使い道が無く、2 Anlas だけが消える
+- `noise_schedule` と `variety_boost` は V5 では無視する。公式アプリもリクエストから落としている
+- `tag_hint_transparent_background: true` のとき、プロンプトのタグ末尾（クオリティタグの前）に
+  `transparent background` を足す。公式アプリが同じ位置に足していて、フラグ自体は「そのタグが
+  入っている」というヒントでしかない。`straight_alpha` は出力 PNG のアルファをストレートで書く
+  指定で、透過と一緒に送る
+
 ## ライブラリ
 
 | メソッド | パス | 説明 |

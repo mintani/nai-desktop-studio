@@ -18,6 +18,7 @@ import {
   Download,
   Hash,
   Info,
+  ScanSearch,
   Trash2,
   X,
 } from "lucide-react";
@@ -35,6 +36,7 @@ type Props = {
   onDownload: (image: GeneratedImage) => void;
   onCopyPrompt: (image: GeneratedImage) => void;
   onCopySeed: (image: GeneratedImage) => void;
+  onAnalyze: (image: GeneratedImage) => void;
   onDelete: (image: GeneratedImage) => void;
 };
 
@@ -52,6 +54,7 @@ export function ImageLightbox({
   onDownload,
   onCopyPrompt,
   onCopySeed,
+  onAnalyze,
   onDelete,
 }: Props) {
   const { t, locale } = useI18n();
@@ -423,6 +426,18 @@ export function ImageLightbox({
         >
           <Hash className="size-5" aria-hidden />
           <span className="sr-only">{t("viewer.action.copySeed")}</span>
+        </button>
+        <button
+          type="button"
+          className={CTRL}
+          title={t("analysis.action")}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAnalyze(current);
+          }}
+        >
+          <ScanSearch className="size-5" aria-hidden />
+          <span className="sr-only">{t("analysis.action")}</span>
         </button>
         <button
           type="button"

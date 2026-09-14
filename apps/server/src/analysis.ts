@@ -22,7 +22,8 @@ import {
  * machine.
  */
 
-// Same cap as the assets endpoint: base64 decodes to at most this.
+// Same cap as the assets endpoint: base64 decodes to at most this. A library
+// image is the app's own output and is read as it is.
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 const imageRefSchema = z.union([
@@ -108,18 +109,63 @@ function normalizeArtist(name: string): string {
  * not tags.
  */
 function promptTags(prompt: string): string[] {
-  const tagPart = prompt.split(/(?:^|\n)Text:/)[0] ?? "";
+  const tagPart = prompt.split(/(?:^|[\n,])\s*Text:/)[0] ?? "";
   return tagPart
     .split(/[,\n]/)
     .map((token) =>
       normalizeArtist(
+        // Emphasis can sit outside or inside a weight: `{1.3::tag::}` and
+        // `1.3::{tag}::` both name the same tag.
         token
           .trim()
-          .replace(/^-?\d+(?:\.\d+)?::(.*)::$/s, "$1")
+          .replace(/^[{[]+|[}\]]+$/g, "")
+          .replace(/^-?\d+(?:\.\d+)?::(.*?)(?:::)?$/s, "$1")
           .replace(/^[{[]+|[}\]]+$/g, "")
       )
     )
     .filter((tag) => tag.length > 0);
+}
+
+type Ranking = {
+  /** Every artist, best first. */
+  ranked: { index: number; score: number }[];
+  /** Lower-cased label to its 0-based position in `ranked`. */
+  rankOf: Map<string, number>;
+};
+
+// A library image never changes, so its ranking is worth keeping: looking up
+// a second artist on the same picture is then a map read, not another pass
+// through the model. Bounded so a long session does not hoard 39k-entry
+// arrays.
+const rankings = new Map<string, Promise<Ranking>>();
+const MAX_RANKINGS = 8;
+
+function rankingOf(
+  spec: ModelSpec,
+  image: Loaded,
+  labels: string[]
+): Promise<Ranking> {
+  const key = image.id ? `${spec.id}:${image.id}` : null;
+  const cached = key ? rankings.get(key) : undefined;
+  if (cached) return cached;
+
+  const ranking = rankArtists(spec, image.bytes).then((ranked) => {
+    const rankOf = new Map<string, number>();
+    ranked.forEach((entry, at) => {
+      const label = labels[entry.index];
+      if (label) rankOf.set(label.toLowerCase(), at);
+    });
+    return { ranked, rankOf };
+  });
+  if (key) {
+    ranking.catch(() => rankings.delete(key));
+    rankings.set(key, ranking);
+    if (rankings.size > MAX_RANKINGS) {
+      const oldest = rankings.keys().next().value;
+      if (oldest !== undefined) rankings.delete(oldest);
+    }
+  }
+  return ranking;
 }
 
 const artistsBodySchema = z.object({
@@ -148,6 +194,9 @@ export const analysisRouter = new Hono()
     if (!spec) return c.json({ error: "Unknown model" }, 404);
     await dropSession(spec.id);
     await deleteModel(spec);
+    for (const key of rankings.keys()) {
+      if (key.startsWith(`${spec.id}:`)) rankings.delete(key);
+    }
     return c.json({ ok: true });
   })
   /**
@@ -169,12 +218,12 @@ export const analysisRouter = new Hono()
       if (!loaded.ok) return c.json({ error: loaded.error }, loaded.status);
 
       try {
-        const [labels, ranking, posts] = await Promise.all([
+        const [labels, posts] = await Promise.all([
           loadLabels(spec),
-          rankArtists(spec, loaded.image.bytes),
           artistPostCounts(),
         ]);
-        const candidates = ranking.slice(0, limit ?? 10).map((entry) => {
+        const { ranked, rankOf } = await rankingOf(spec, loaded.image, labels);
+        const candidates = ranked.slice(0, limit ?? 10).map((entry) => {
           const name = labels[entry.index] ?? `#${entry.index}`;
           return {
             name,
@@ -188,14 +237,13 @@ export const analysisRouter = new Hono()
         // Where a tag sits in the full ranking, or null for one the model
         // does not know.
         const place = (wanted: string) => {
-          const at = ranking.findIndex(
-            (entry) => labels[entry.index]?.toLowerCase() === wanted
-          );
-          if (at < 0) return null;
-          const name = labels[ranking[at]!.index]!;
+          const at = rankOf.get(wanted);
+          if (at === undefined) return null;
+          const entry = ranked[at]!;
+          const name = labels[entry.index]!;
           return {
             name,
-            score: ranking[at]!.score,
+            score: entry.score,
             rank: at + 1,
             posts: posts.get(name.toLowerCase()) ?? null,
           };

@@ -195,4 +195,101 @@ const ja: Record<keyof typeof en, string> = {
   "styles.copySuffix": "コピー",
 };
 
-export const styles = { en, ja };
+const zh: Record<keyof typeof en, string> = {
+  // list / manager
+  "styles.title": "风格",
+  "styles.subtitle": "{count} 个风格",
+  "styles.new": "新建风格",
+  "styles.search": "按名称或标签搜索…",
+  "styles.empty.title": "还没有风格",
+  "styles.empty.hint": "创建风格后，可以在多次生成之间复用同一种画风。",
+  "styles.noResults": "没有与“{query}”匹配的风格。",
+  "styles.untitled": "未命名",
+
+  // card / row actions
+  "styles.action.edit": "编辑",
+  "styles.action.duplicate": "复制",
+  "styles.action.delete": "删除",
+
+  // delete confirm
+  "styles.delete.title": "要删除这个风格吗？",
+  "styles.delete.body": "将删除“{name}”及其图片。此操作无法撤销。",
+  "styles.delete.confirm": "删除",
+
+  // editor
+  "styles.editor.new": "新建风格",
+  "styles.editor.edit": "编辑风格",
+  "styles.editor.back": "返回",
+  "styles.editor.save": "保存",
+  "styles.editor.saving": "保存中…",
+  "styles.field.name": "名称",
+  "styles.field.namePlaceholder": "动漫赛璐璐上色",
+  "styles.field.styleTag": "风格标签",
+  "styles.field.styleTagPlaceholder": "anime, high quality",
+  "styles.field.negativeTag": "负面标签",
+  "styles.field.negativeTagPlaceholder": "bad anatomy, lowres",
+  "styles.field.promptPosition": "风格标签的位置",
+  "styles.field.negativePosition": "负面标签的位置",
+  "styles.field.sample": "示例图片",
+  "styles.sample.pick": "选择图片",
+  "styles.sample.change": "更换",
+  "styles.error.nameRequired": "请输入名称",
+
+  // prompt-tag positions
+  "style.position.start": "质量标签之前",
+  "style.position.afterQuality": "质量标签之后",
+  "style.position.end": "最末尾",
+
+  // generation overrides
+  "styles.params.title": "生成参数覆盖",
+  "styles.params.hint": "只有启用的项目会在选择这个风格时生效。",
+  "styles.params.model": "模型",
+  "styles.params.steps": "步数",
+  "styles.params.scale": "提示词引导强度",
+  "styles.params.cfgRescale": "CFG 重缩放",
+  "styles.params.varietyBoost": "多样性增强",
+  "styles.params.sampler": "采样器",
+  "styles.params.noiseSchedule": "噪声调度",
+  "styles.params.enable": "覆盖这个值",
+
+  // vibe transfer
+  "styles.vibes.title": "Vibe 迁移",
+  "styles.vibes.hint":
+    "在使用这个风格生成时用于引导画面的参考图（最多 {max} 张）。",
+  "styles.vibes.add": "添加 Vibe 图",
+  "styles.vibes.blocked": "无法与精确参考同时使用。",
+  "styles.vibes.encodeNote":
+    "修改“信息提取度”会在下次生成时重新编码，并消耗 Anlas。",
+  "styles.vibes.empty": "暂无。",
+
+  // precise references
+  "styles.references.title": "精确参考",
+  "styles.references.hint":
+    "这个风格的精确参考图（最多 {max} 张，每张 5 Anlas）。",
+  "styles.references.add": "添加参考图",
+  "styles.references.blocked": "无法与 Vibe 迁移同时使用。",
+  "styles.references.empty": "暂无。",
+
+  // shared row labels
+  "styles.strength": "强度",
+  "styles.infoExtracted": "信息提取度",
+  "styles.fidelity": "保真度",
+  "styles.atMax": "已达上限",
+  "styles.refType.character": "角色",
+  "styles.refType.style": "画风",
+  "styles.refType.characterStyle": "角色 + 画风",
+
+  // image picking
+  "styles.image.notImage": "请选择图片文件",
+  "styles.image.tooLarge": "图片大小不能超过 10 MB",
+
+  // failures
+  "styles.toast.saveFailed": "无法保存风格",
+  "styles.toast.deleteFailed": "无法删除风格",
+  "styles.toast.duplicateFailed": "无法复制风格",
+
+  // duplicate naming
+  "styles.copySuffix": "副本",
+};
+
+export const styles = { en, ja, zh };

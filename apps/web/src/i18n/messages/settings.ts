@@ -114,4 +114,61 @@ const ja: Record<keyof typeof en, string> = {
     "生成パネルのどの部分を、起動した時点で開いておくかを選びます。",
 };
 
-export const settings = { en, ja };
+const zh: Record<keyof typeof en, string> = {
+  "settings.title": "设置",
+
+  "settings.onboarding.title": "连接到 NovelAI",
+  "settings.onboarding.body":
+    "生成图片需要 NovelAI 的 API 密钥。只需设置一次即可开始使用。",
+  "settings.onboarding.submit": "连接并开始",
+
+  "settings.apiKey.label": "NovelAI API 密钥",
+  "settings.apiKey.help":
+    "在 NovelAI 的 Settings → Account → Get Persistent API Token 中获取。密钥只保存在这台电脑的用户设置目录中，不会发送到任何其他地方。",
+  "settings.apiKey.reveal": "显示",
+  "settings.apiKey.hide": "隐藏",
+  "settings.apiKey.save": "保存",
+  "settings.apiKey.update": "更新密钥",
+  "settings.apiKey.verifying": "正在验证…",
+  "settings.apiKey.verified": "已连接 — 剩余 {count} Anlas",
+  "settings.apiKey.saved": "已保存 API 密钥",
+  "settings.apiKey.errorEmpty": "请输入 API 密钥",
+  "settings.apiKey.errorVerify": "无法验证 API 密钥",
+
+  "settings.account.title": "账户",
+  "settings.account.anlasRemaining": "剩余 {count} Anlas",
+  "settings.account.currentKey": "当前密钥：{key}",
+
+  "settings.plan.label": "订阅方案",
+  "settings.plan.opus": "Opus",
+  "settings.plan.other": "其他 / 未订阅",
+  "settings.plan.help":
+    "Opus 可以免费生成小尺寸图片（1024 x 1024 及 28 步以内）。这里只会改变生成按钮上显示的 Anlas 估算值，不会改变 NovelAI 的实际扣费。",
+  "settings.plan.detected": "你的账户看起来是 tier {tier}",
+  "settings.plan.saved": "已更新订阅方案",
+
+  "settings.mode.label": "生成模式",
+  "settings.mode.queue": "队列 — 逐张生成",
+  "settings.mode.alternate": "合并 — 一次请求生成全部",
+  "settings.mode.help":
+    "队列会为每张图片单独发送请求，所以在 Opus 下每张小图都保持免费，生成完的图片会陆续显示。合并模式会在一次请求里向 NovelAI 索取全部图片：往返次数更少，但只有第一张图片能享受 Opus 的免费额度。",
+  "settings.mode.saved": "已更新生成模式",
+
+  "settings.output.label": "输出文件夹",
+  "settings.output.change": "更改",
+  "settings.output.help":
+    "生成的图片及其元数据（提示词、种子等）会保存到这个文件夹。",
+  "settings.output.errorEmpty": "请输入输出文件夹",
+  "settings.output.saved": "已更新输出文件夹",
+  "settings.output.errorSave": "保存失败",
+
+  "settings.model.label": "默认模型",
+  "settings.model.saved": "已更新默认模型",
+  "settings.model.help":
+    "应用启动时默认选中的模型。每次生成仍然可以自由切换模型。",
+
+  "settings.sections.label": "默认展开的板块",
+  "settings.sections.help": "选择应用启动时生成面板中哪些部分已经展开。",
+};
+
+export const settings = { en, ja, zh };

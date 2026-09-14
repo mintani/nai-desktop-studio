@@ -93,4 +93,55 @@ const ja: Record<keyof typeof en, string> = {
   "viewer.library.openImage": "{time} の画像を開く",
 };
 
-export const viewer = { en, ja };
+const zh: Record<keyof typeof en, string> = {
+  "viewer.empty": "输入提示词后点击“生成”",
+  "viewer.emptyBatch": "选择场景后点击“生成”",
+
+  // Lightbox / navigation
+  "viewer.lightbox.aria": "图片预览",
+  "viewer.nav.prev": "上一张图片",
+  "viewer.nav.next": "下一张图片",
+
+  // Metadata info panel
+  "viewer.info.prompt": "提示词",
+  "viewer.info.model": "模型",
+  "viewer.info.size": "尺寸",
+  "viewer.info.seed": "种子",
+  "viewer.info.steps": "步数",
+  "viewer.info.scale": "引导强度",
+  "viewer.info.sampler": "采样器",
+  "viewer.info.createdAt": "创建时间",
+
+  // Image actions (shared by lightbox and single view)
+  "viewer.action.download": "下载",
+  "viewer.action.copyPrompt": "复制提示词",
+  "viewer.action.copySeed": "复制种子",
+  "viewer.action.info": "显示信息",
+
+  // Single-image (carousel) view
+  "viewer.single.clickToEnlarge": "点击放大",
+  "viewer.single.showThisImage": "显示这张图片",
+
+  // Grid
+  "viewer.grid.tileHint": "单击选择，双击放大",
+
+  // History strip
+  "viewer.history.title": "历史记录",
+  "viewer.history.expand": "显示历史记录",
+  "viewer.history.collapse": "隐藏历史记录",
+  "viewer.history.generating": "生成中",
+  "viewer.history.generatingCount": "生成中 {current}/{total}",
+  "viewer.history.clear": "清空历史记录",
+  "viewer.history.empty": "暂无历史记录",
+  "viewer.history.clearTitle": "要清空历史记录吗？",
+  "viewer.history.clearDescription":
+    "这会删除历史记录中的全部 {count} 张图片，且无法撤销。",
+
+  // Library dialog
+  "viewer.library.title": "图库",
+  "viewer.library.empty": "还没有图片",
+  "viewer.library.noPrompt": "没有提示词",
+  "viewer.library.openImage": "打开 {time} 的图片",
+};
+
+export const viewer = { en, ja, zh };

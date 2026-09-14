@@ -42,4 +42,27 @@ const ja: Record<keyof typeof en, string> = {
   "error.clipboard": "クリップボードにコピーできませんでした",
 };
 
-export const common = { en, ja };
+const zh: Record<keyof typeof en, string> = {
+  "app.name": "nai-desktop-studio",
+  "app.description": "用 NovelAI 生成图像，并在本机回看。",
+
+  "action.cancel": "取消",
+  "action.delete": "删除",
+  "action.close": "关闭",
+  "action.retry": "重试",
+
+  // Characters, situations and styles are all filed the same way, so they say
+  // it the same way too.
+  "group.label": "分组",
+  "group.none": "未分组",
+  "group.new": "新建分组…",
+  "group.newPlaceholder": "分组名称",
+
+  "unit.images": "{count} 张",
+  "unit.anlas": "{count} Anlas",
+
+  "error.generic": "出现了问题",
+  "error.clipboard": "无法复制到剪贴板",
+};
+
+export const common = { en, ja, zh };

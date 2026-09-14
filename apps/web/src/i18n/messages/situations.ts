@@ -84,4 +84,45 @@ const ja: Record<keyof typeof en, string> = {
     "「{name}」を削除します。この操作は取り消せません。",
 };
 
-export const situations = { en, ja };
+const zh: Record<keyof typeof en, string> = {
+  "situations.title": "场景",
+  "situations.subtitle": "可重复使用的场景模板，任何角色都能套用。",
+  "situations.search.placeholder": "搜索场景…",
+  "situations.new": "新建场景",
+  "situations.untitled": "未命名场景",
+  "situations.noPrompt": "没有场景提示词",
+  "situations.copyName": "{name} 副本",
+
+  "situations.empty.title": "还没有场景",
+  "situations.empty.body": "新建一个即可开始搭建场景模板。",
+  "situations.select.title": "未选择场景",
+  "situations.select.body": "从列表中选择一个场景，或者新建一个。",
+
+  "situations.name.label": "名称",
+  "situations.name.placeholder": "场景名称",
+
+  "situations.field.basePrompt": "场景提示词",
+  "situations.field.baseNegative": "场景负面提示词",
+  "situations.field.characterPrompt": "角色提示词",
+  "situations.field.characterNegativePrompt": "角色负面提示词",
+  "situations.field.placeholder": "这个场景的描述文字…",
+
+  "situations.token.remove": "移除 {token}",
+  "situations.token.restore": "恢复 {token}",
+  "situations.token.internal": "始终包含",
+
+  "situations.action.duplicate": "复制",
+  "situations.action.save": "保存",
+  "situations.status.unsaved": "有未保存的更改",
+
+  "situations.toast.created": "已创建场景",
+  "situations.toast.saved": "已保存场景",
+  "situations.toast.duplicated": "已复制场景",
+  "situations.toast.deleted": "已删除场景",
+  "situations.toast.error": "出错了",
+
+  "situations.delete.title": "要删除这个场景吗？",
+  "situations.delete.body": "“{name}”将被删除。此操作无法撤销。",
+};
+
+export const situations = { en, ja, zh };

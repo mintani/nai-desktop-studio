@@ -9,9 +9,9 @@ import { styles } from "./styles";
 import { viewer } from "./viewer";
 
 /**
- * English is the source of truth. Each bundle types its Japanese side against
- * its English keys, so a missing translation is a type error, not a silent
- * fallback at runtime.
+ * English is the source of truth. Each bundle types its other languages
+ * against its English keys, so a missing translation is a type error, not a
+ * silent fallback at runtime.
  */
 export type MessageKey =
   | keyof (typeof analysis)["en"]
@@ -37,4 +37,5 @@ const bundles = [
 export const messages: Record<Locale, Record<string, string>> = {
   en: Object.assign({}, ...bundles.map((bundle) => bundle.en)),
   ja: Object.assign({}, ...bundles.map((bundle) => bundle.ja)),
+  zh: Object.assign({}, ...bundles.map((bundle) => bundle.zh)),
 };

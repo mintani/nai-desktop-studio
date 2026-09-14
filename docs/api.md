@@ -214,6 +214,68 @@ type ResolvedReference = {
 
 解決できなかった id は落として返す。壊れた 1 件で生成 1 回分を失わないため。
 
+## 解析
+
+生成した画像が誰の絵柄に近いかを、手元で動かすモデルで調べる。モデルは同梱せず、
+`<configDir>/models/<id>/` へ初回にダウンロードする（Hugging Face のリビジョン固定 URL。
+ファイルは期待どおりのサイズで揃って初めて「ある」と見なす）。推論は同じプロセスの
+onnxruntime-node（CPU）で、前処理は sharp。
+
+| メソッド | パス | 説明 |
+| --- | --- | --- |
+| `GET` | `/analysis/models` | `{ items: ModelStatus[] }` |
+| `POST` | `/analysis/models/:id/download` | ダウンロードを始める（202）。進捗は `GET` で見る |
+| `DELETE` | `/analysis/models/:id` | モデルのファイルを消す。`{ ok: true }` |
+| `POST` | `/analysis/artists` | body `{ image, artist?, limit? }` → 作家の候補 |
+
+```ts
+type ImageRef = { imageId: string } | { imageBase64: string };
+
+type ModelStatus = {
+  id: string;            // "kaloscope-2.0"
+  role: "artist";
+  label: string;
+  source: string;        // 配布元の URL
+  bytes: number;         // 全ファイルの合計
+  ready: boolean;        // 全ファイルが期待どおりのサイズで揃っている
+  downloading: boolean;
+  received: number;      // ダウンロード済みのバイト数
+  error: string | null;  // 直前のダウンロードが失敗した理由
+};
+
+// POST /analysis/artists。作家モデル 1 つにつき 1 件（今は Kaloscope だけ）
+type ArtistAnalysis = {
+  results: {
+    model: string;                       // "kaloscope-2.0"
+    label: string;
+    artists: number;                     // 分類できる作家数（39,261）
+    candidates: { name: string; score: number; posts: number | null }[]; // 上位から。posts は Danbooru の投稿数
+    lookup: ArtistPlace | null;          // artist を指定したときだけ
+    mentioned: ArtistPlace[];            // 画像のプロンプトに書かれた作家タグ（imageId のときだけ）
+  }[];
+};
+
+type ArtistPlace = {
+  name: string;
+  score: number;
+  rank: number;                          // 全作家中の順位（1 始まり）
+  posts: number | null;
+};
+```
+
+- モデルが無いときは 409 `{ error, model }`。画面は先に `/analysis/models` を見てから呼ぶ
+- `limit` は 500 まで。画面は 200 件受け取り、投稿数の少ない作家を除く表示をクライアント側で
+  切り替える（`posts` は同梱のタグ一覧から引く。一覧に無い名前は `null`）
+- `mentioned` はプロンプトをカンマで割り、`{}` / `[]` の強調と `1.2::tag::` の重み、`artist:`
+  接頭辞を外してから作家一覧に照合する。Text: ブロックは見ない。`imageBase64` にはプロンプトが
+  無いので空
+- `artist` は Danbooru の作家タグ。`artist:` 接頭辞と大文字小文字は無視する。モデルの一覧に
+  無ければ `lookup` は `null`
+- `imageBase64` はデコード後 10 MB まで（413）。画像として読めなければ 400
+- 前処理は正方形へそのままリサイズし、ImageNet の平均・分散で正規化して CHW に並べる。
+  透過は白へ合成する（V5 の透過 PNG はアルファの下に任意の色が残るため）
+- `score` は 39,261 クラスの softmax。候補を並べるための数字で、似ているかの断定には使わない
+
 ## アセット
 
 スタイル（vibe / precise-reference / sample）とキャラクターに紐づく画像を保存する。

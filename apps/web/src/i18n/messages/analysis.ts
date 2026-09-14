@@ -65,4 +65,36 @@ const ja: Record<keyof typeof en, string> = {
     "スコアは知っている作家全体に対するモデルの確率です。候補の順位を見るための数字で、似ているかの断定ではありません。",
 };
 
-export const analysis = { en, ja };
+const zh: Record<keyof typeof en, string> = {
+  "analysis.title": "分析图像",
+  "analysis.description": "用本机上的模型查看这张图接近谁的画风。",
+  "analysis.action": "开始分析",
+
+  "analysis.section.artist": "画师",
+
+  // Models are fetched on demand, so a section can open on this row instead.
+  "analysis.model.download": "下载",
+  "analysis.model.retry": "重试",
+  "analysis.model.ready": "已就绪",
+  "analysis.model.hint": "只在首次下载到应用的配置文件夹，之后都在本机运行。",
+  "analysis.model.size": "{size} MB",
+
+  "analysis.analyzing": "分析中…",
+  "analysis.artist.scope": "列出画师的范围",
+  "analysis.artist.scope.major": "作品数 {count} 以上",
+  "analysis.artist.scope.all": "全部",
+  "analysis.artist.scope.prompt": "提示词中的画师",
+  "analysis.artist.nonePrompt": "提示词中没有模型认识的画师标签。",
+  "analysis.artist.noneMajor":
+    "排名前 {total} 位中没有作品数达到 {count} 的画师。",
+  "analysis.artist.lookupLabel": "查询指定画师",
+  "analysis.artist.lookupPlaceholder": "Danbooru 画师标签",
+  "analysis.artist.lookupResult": "#{rank} · {score}%",
+  "analysis.artist.notInModel": "这位画师不在模型的列表中",
+  "analysis.artist.knows": "{count} 位画师",
+  "analysis.artist.openDanbooru": "在 Danbooru 中打开",
+  "analysis.artist.caption":
+    "得分是模型在所有已知画师中给出的概率。它是用来排列候选画师的数字，并不是断定这张图模仿了谁。",
+};
+
+export const analysis = { en, ja, zh };

@@ -128,4 +128,67 @@ const ja: Record<keyof typeof en, string> = {
   "characters.deleteError": "キャラクターの削除に失敗しました",
 };
 
-export const characters = { en, ja };
+const zh: Record<keyof typeof en, string> = {
+  "characters.title": "角色",
+  "characters.searchPlaceholder": "搜索角色…",
+  "characters.create": "新建角色",
+  "characters.newName": "新角色",
+  "characters.copyName": "{name} 副本",
+  "characters.empty": "还没有角色",
+  "characters.searchEmpty": "没有与“{query}”匹配的角色",
+  "characters.noSelection": "请选择要编辑的角色",
+  "characters.duplicate": "复制",
+  "characters.deleted": "已删除“{name}”",
+
+  "characters.name": "名称",
+  "characters.namePlaceholder": "角色名称",
+
+  "characters.gender": "主体",
+  "characters.genderNone": "无",
+  "characters.genderGirl": "女孩",
+  "characters.genderBoy": "男孩",
+  "characters.genderOther": "其他",
+  "characters.genderHint":
+    "会放在这个角色提示词的开头。V4 会分别读取每个角色的提示词，因此没有表示主体的词时，两个角色容易混成一个人。",
+
+  "characters.imageAdd": "设置图片",
+  "characters.imageChange": "更换图片",
+  "characters.imageRemove": "移除",
+  "characters.imageError": "无法保存图片",
+
+  "characters.reference": "来源",
+  "characters.referenceAll": "全部场景",
+  "characters.fieldCount": "{count} 个输入项",
+  "characters.noSituations":
+    "还没有场景。当某个场景需要标签时，对应的输入项会显示在这里。",
+  "characters.noFields": "这些场景不需要任何标签。",
+  "characters.valuePlaceholder": "输入标签…",
+
+  "characters.slots": "追加槽位",
+  "characters.slotsHint":
+    "所有场景都会带上这些。{additional} 和 {additional_negative} 会进入场景，因此只会使用第一个角色的值。",
+
+  "characters.unused": "没有被任何场景使用",
+  "characters.unusedHint": "在某个场景引用它们的键之前，这些值不会进入图片。",
+  "characters.addVariable": "添加值",
+  "characters.variableKeyPlaceholder": "键",
+
+  "characters.ownPrompt": "这个角色的单独提示词",
+  "characters.ownPromptHint":
+    "只用于列表和下方的预览。生成时使用场景的模板，不会用到这里的内容。",
+  "characters.negativePrompt": "负面提示词",
+  "characters.negativePlaceholder": "这个角色的负面标签",
+  "characters.positiveTemplate": "正面模板",
+  "characters.negativeTemplate": "负面模板",
+  "characters.templateHint": "用 {key} 的形式引用值。",
+  "characters.previewPositive": "正面预览",
+  "characters.previewNegative": "负面预览",
+  "characters.previewEmpty": "暂无可预览的内容",
+
+  "characters.deleteTitle": "要删除这个角色吗？",
+  "characters.deleteDescription": "将删除“{name}”。此操作无法撤销。",
+  "characters.saveError": "无法保存角色",
+  "characters.deleteError": "无法删除角色",
+};
+
+export const characters = { en, ja, zh };

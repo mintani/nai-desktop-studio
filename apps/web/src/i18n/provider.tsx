@@ -23,7 +23,7 @@ function translate(
   key: MessageKey,
   vars?: Record<string, string | number>
 ) {
-  // Fall back to English rather than showing the raw key: a missing Japanese
+  // Fall back to English rather than showing the raw key: a missing translated
   // string should still read as the product, not as a bug.
   const template = messages[locale][key] ?? messages.en[key] ?? key;
   if (!vars) return template;

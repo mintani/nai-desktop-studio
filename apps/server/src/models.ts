@@ -1,4 +1,6 @@
 import { mkdir, open, rename, rm, stat } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { createHash } from "node:crypto";
 import { join } from "node:path";
 import { configDir } from "./paths";
 
@@ -13,10 +15,14 @@ import { configDir } from "./paths";
 export type ModelRole = "artist";
 
 export type ModelFile = {
-  /** File name under the model's directory. */
   name: string;
   url: string;
   bytes: number;
+  /**
+   * Checked once, when the download completes; a file that is only the
+   * right length is not enough proof after a resume onto a stale part.
+   */
+  sha256?: string;
 };
 
 export type ModelSpec = {
@@ -48,6 +54,8 @@ export const MODELS: readonly ModelSpec[] = [
         name: "model.onnx",
         url: `${KALOSCOPE}/v2.0/kaloscope_2-0.onnx`,
         bytes: 733_886_867,
+        sha256:
+          "b50ab39b8986a2da9c4070226fb7f1009a34896ddf3c316156a84c64b0433219",
       },
       {
         name: "labels.csv",
@@ -81,7 +89,11 @@ export function modelPath(spec: ModelSpec, name: string): string {
   return join(modelDir(spec), name);
 }
 
-/** A file counts as present only at the exact size the registry expects. */
+/**
+ * A file counts as present only at the exact size the registry expects. The
+ * checksum is verified when the download lands (see downloadFile), not on
+ * every check: hashing 700 MB on each request would cost seconds.
+ */
 async function fileReady(spec: ModelSpec, file: ModelFile): Promise<boolean> {
   const info = await stat(modelPath(spec, file.name)).catch(() => null);
   return info !== null && info.size === file.bytes;
@@ -144,6 +156,12 @@ async function sizeOf(path: string): Promise<number> {
   return info?.size ?? 0;
 }
 
+async function sha256Of(path: string): Promise<string> {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path)) hash.update(chunk);
+  return hash.digest("hex");
+}
+
 /**
  * Fetches one file into `<target>.part`, then renames it into place once it
  * has every byte, so a half-written model is never mistaken for a whole one.
@@ -175,9 +193,15 @@ async function downloadFile(
       throw new Error(`Download failed with status ${response.status}`);
     }
     // A server that ignores the range answers 200 with the whole file; then
-    // the part written so far has to go.
+    // the part written so far has to go. A 206 is only usable if it starts
+    // exactly where the part stops.
     const resumed = response.status === 206;
-    if (offset > 0 && !resumed) {
+    if (resumed) {
+      const range = response.headers.get("content-range") ?? "";
+      if (!range.startsWith(`bytes ${offset}-`)) {
+        throw new Error(`Server answered the wrong range (${range || "none"})`);
+      }
+    } else if (offset > 0) {
       await rm(part, { force: true });
       onChunk(-offset);
       offset = 0;
@@ -205,6 +229,13 @@ async function downloadFile(
     }
   }
 
+  if (file.sha256) {
+    const actual = await sha256Of(part);
+    if (actual !== file.sha256) {
+      await rm(part, { force: true });
+      throw new Error("The downloaded file is corrupt (checksum mismatch)");
+    }
+  }
   await rename(part, target);
 }
 

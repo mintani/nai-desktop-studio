@@ -145,15 +145,21 @@ let artistCounts: Promise<Map<string, number>> | null = null;
  * analysis can tell a name with fifty posts from one with five thousand.
  */
 export function artistPostCounts(): Promise<Map<string, number>> {
-  artistCounts ??= loadTags().then((tags) => {
-    const counts = new Map<string, number>();
-    for (const tag of tags) {
-      if (!tag.isArtist) continue;
-      const key = tag.name.toLowerCase();
-      counts.set(key, Math.max(counts.get(key) ?? 0, tag.count));
-    }
-    return counts;
-  });
+  if (!artistCounts) {
+    const loading = loadTags().then((tags) => {
+      const counts = new Map<string, number>();
+      for (const tag of tags) {
+        if (!tag.isArtist) continue;
+        const key = tag.name.toLowerCase();
+        counts.set(key, Math.max(counts.get(key) ?? 0, tag.count));
+      }
+      // An unreadable tag list loads as empty; keeping that would hide every
+      // artist behind the post-count filter until the process restarts.
+      if (counts.size === 0 && artistCounts === loading) artistCounts = null;
+      return counts;
+    });
+    artistCounts = loading;
+  }
   return artistCounts;
 }
 

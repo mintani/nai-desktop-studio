@@ -17,30 +17,66 @@ const STD = [0.229, 0.224, 0.225] as const;
 
 export type ImageSource = string | Uint8Array;
 
+type Loaded = {
+  session: Promise<ort.InferenceSession>;
+  /** Inferences in flight. A dropped session is released once this is 0. */
+  running: number;
+  dropped: boolean;
+};
+
 // A loaded session is kept for the life of the process: the artist model
 // takes seconds to load and every analysis would pay that again.
-const sessions = new Map<string, Promise<ort.InferenceSession>>();
+const sessions = new Map<string, Loaded>();
 
-export function loadSession(spec: ModelSpec): Promise<ort.InferenceSession> {
-  let session = sessions.get(spec.id);
-  if (!session) {
-    session = ort.InferenceSession.create(modelPath(spec, "model.onnx")).catch(
-      (error: unknown) => {
-        sessions.delete(spec.id);
-        throw error;
-      }
-    );
-    sessions.set(spec.id, session);
+function loadSession(spec: ModelSpec): Loaded {
+  let loaded = sessions.get(spec.id);
+  if (!loaded) {
+    const entry: Loaded = {
+      session: ort.InferenceSession.create(modelPath(spec, "model.onnx")),
+      running: 0,
+      dropped: false,
+    };
+    // Only this entry is forgotten on failure: a later successful load under
+    // the same id must not be evicted by an earlier attempt that lost.
+    entry.session.catch(() => {
+      if (sessions.get(spec.id) === entry) sessions.delete(spec.id);
+    });
+    sessions.set(spec.id, entry);
+    loaded = entry;
   }
-  return session;
+  return loaded;
+}
+
+async function release(entry: Loaded): Promise<void> {
+  await entry.session.then((session) => session.release()).catch(() => {});
+}
+
+/**
+ * Runs `fn` against the model's session, counting it as in flight so a
+ * concurrent drop waits for it: releasing a native session mid-run is a
+ * crash, not an error.
+ */
+async function withSession<T>(
+  spec: ModelSpec,
+  fn: (session: ort.InferenceSession) => Promise<T>
+): Promise<T> {
+  const entry = loadSession(spec);
+  entry.running++;
+  try {
+    return await fn(await entry.session);
+  } finally {
+    entry.running--;
+    if (entry.dropped && entry.running === 0) await release(entry);
+  }
 }
 
 /** Forgets a loaded session, e.g. because its files are being deleted. */
 export async function dropSession(id: string): Promise<void> {
-  const session = sessions.get(id);
+  const entry = sessions.get(id);
   sessions.delete(id);
-  if (!session) return;
-  await session.then((loaded) => loaded.release()).catch(() => undefined);
+  if (!entry) return;
+  entry.dropped = true;
+  if (entry.running === 0) await release(entry);
 }
 
 export async function imageTensor(
@@ -50,6 +86,8 @@ export async function imageTensor(
   const { data, info } = await sharp(source)
     .flatten({ background: "#ffffff" })
     .resize(size, size, { fit: "fill", kernel: "lanczos3" })
+    // A CMYK source would otherwise come back as four channels.
+    .toColorspace("srgb")
     .raw()
     .toBuffer({ resolveWithObject: true });
 
@@ -71,19 +109,20 @@ export async function runModel(
   spec: ModelSpec,
   source: ImageSource
 ): Promise<Float32Array> {
-  const session = await loadSession(spec);
-  const inputName = session.inputNames[0];
-  const outputName = session.outputNames[0];
-  if (!inputName || !outputName) {
-    throw new Error(`${spec.id} declares no input or output`);
-  }
   const tensor = await imageTensor(source, spec.inputSize);
-  const outputs = await session.run({ [inputName]: tensor });
-  const output = outputs[outputName]?.data;
-  if (!(output instanceof Float32Array)) {
-    throw new Error(`${spec.id} returned an unexpected output type`);
-  }
-  return output;
+  return withSession(spec, async (session) => {
+    const inputName = session.inputNames[0];
+    const outputName = session.outputNames[0];
+    if (!inputName || !outputName) {
+      throw new Error(`${spec.id} declares no input or output`);
+    }
+    const outputs = await session.run({ [inputName]: tensor });
+    const output = outputs[outputName]?.data;
+    if (!(output instanceof Float32Array)) {
+      throw new Error(`${spec.id} returned an unexpected output type`);
+    }
+    return output;
+  });
 }
 
 function softmax(logits: Float32Array): Float32Array {
@@ -94,6 +133,11 @@ function softmax(logits: Float32Array): Float32Array {
   for (let i = 0; i < logits.length; i++) {
     out[i] = Math.exp(logits[i]! - max);
     sum += out[i]!;
+  }
+  // One non-finite logit would turn every score into NaN and the ranking
+  // into noise; better to say so than to name an artist off it.
+  if (!Number.isFinite(sum) || sum === 0) {
+    throw new Error("The model returned no usable scores");
   }
   for (let i = 0; i < out.length; i++) out[i] = out[i]! / sum;
   return out;
@@ -117,18 +161,23 @@ const labelCache = new Map<string, Promise<string[]>>();
 
 /**
  * A class list shipped as `class_id,class_name`, one artist per line, names
- * wrapped in single quotes.
+ * wrapped in single quotes. Placed by class id rather than line order, so
+ * the file's ordering cannot silently shift every name by one.
  */
 async function labelsFromCsv(path: string): Promise<string[]> {
   const text = await readFile(path, "utf-8");
-  return text
-    .split("\n")
-    .slice(1)
-    .filter((line) => line.trim().length > 0)
-    .map((line) => {
-      const name = line.slice(line.indexOf(",") + 1).trim();
-      return name.replace(/^'|'$/g, "");
-    });
+  const labels: string[] = [];
+  for (const line of text.split("\n").slice(1)) {
+    const comma = line.indexOf(",");
+    if (comma < 0) continue;
+    const id = Number(line.slice(0, comma));
+    if (!Number.isInteger(id) || id < 0) continue;
+    labels[id] = line
+      .slice(comma + 1)
+      .trim()
+      .replace(/^'|'$/g, "");
+  }
+  return labels;
 }
 
 /**
@@ -138,9 +187,12 @@ async function labelsFromCsv(path: string): Promise<string[]> {
 export function loadLabels(spec: ModelSpec): Promise<string[]> {
   let labels = labelCache.get(spec.id);
   if (!labels) {
-    labels = labelsFromCsv(modelPath(spec, "labels.csv"));
-    labels.catch(() => labelCache.delete(spec.id));
-    labelCache.set(spec.id, labels);
+    const loading = labelsFromCsv(modelPath(spec, "labels.csv"));
+    loading.catch(() => {
+      if (labelCache.get(spec.id) === loading) labelCache.delete(spec.id);
+    });
+    labelCache.set(spec.id, loading);
+    labels = loading;
   }
   return labels;
 }

@@ -2,6 +2,7 @@
 
 import { Button } from "@nai-desktop-studio/ui/components/button";
 import { Label } from "@nai-desktop-studio/ui/components/label";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { ChevronRight, ImageIcon, X } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -159,34 +160,36 @@ export function TemplateSection({
           onOpen={() => setPicker("situations")}
         />
         {groupSummary.length > 0 && (
-          <div className="flex max-h-24 flex-wrap gap-1 overflow-y-auto">
-            {groupSummary.map((group) => (
-              <span
-                key={group.name}
-                className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-2 text-[0.625rem]"
-              >
-                <span className="truncate">{group.name}</span>
-                <span className="text-muted-foreground shrink-0 font-mono tabular-nums">
-                  {group.count}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  className="text-muted-foreground hover:text-destructive size-4"
-                  onClick={() => dropGroup(group.name)}
-                  title={t("generate.template.dropGroup", {
-                    name: group.name,
-                  })}
+          <ScrollArea className="max-h-24">
+            <div className="flex flex-wrap gap-1">
+              {groupSummary.map((group) => (
+                <span
+                  key={group.name}
+                  className="bg-muted flex max-w-full items-center gap-1 rounded-full border py-0.5 pr-0.5 pl-2 text-[0.625rem]"
                 >
-                  <X className="size-2.5" aria-hidden />
-                  <span className="sr-only">
-                    {t("generate.template.dropGroup", { name: group.name })}
+                  <span className="truncate">{group.name}</span>
+                  <span className="text-muted-foreground shrink-0 font-mono tabular-nums">
+                    {group.count}
                   </span>
-                </Button>
-              </span>
-            ))}
-          </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    className="text-muted-foreground hover:text-destructive size-4"
+                    onClick={() => dropGroup(group.name)}
+                    title={t("generate.template.dropGroup", {
+                      name: group.name,
+                    })}
+                  >
+                    <X className="size-2.5" aria-hidden />
+                    <span className="sr-only">
+                      {t("generate.template.dropGroup", { name: group.name })}
+                    </span>
+                  </Button>
+                </span>
+              ))}
+            </div>
+          </ScrollArea>
         )}
       </div>
 

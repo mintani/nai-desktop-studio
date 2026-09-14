@@ -56,6 +56,7 @@ import { ImageLightbox } from "./image-lightbox";
 import { LibraryDialog } from "./library-dialog";
 import { SingleImageView } from "./single-image-view";
 import { WorkspaceHeader } from "./workspace-header";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 
 function toSlots(images: GeneratedImage[]): GenerationSlot[] {
   return images.map((image) => ({
@@ -468,16 +469,18 @@ export function GenerateWorkspace() {
                 {...imageActions}
               />
             ) : (
-              <div className="min-h-0 flex-1 overflow-y-auto p-3">
-                <ImageGrid
-                  slots={slots}
-                  resolveSrc={resolveThumbSrc}
-                  tileSize={tileSize}
-                  selectedIds={selectedIds}
-                  onSelect={handleGridSelect}
-                  onOpen={setLightboxId}
-                />
-              </div>
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="p-3">
+                  <ImageGrid
+                    slots={slots}
+                    resolveSrc={resolveThumbSrc}
+                    tileSize={tileSize}
+                    selectedIds={selectedIds}
+                    onSelect={handleGridSelect}
+                    onOpen={setLightboxId}
+                  />
+                </div>
+              </ScrollArea>
             )}
 
             <HistoryFooter

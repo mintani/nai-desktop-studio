@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@nai-desktop-studio/ui/components/dialog";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { ImageIcon } from "lucide-react";
 
 import type { GeneratedImage } from "../types/image";
@@ -52,47 +53,49 @@ export function LibraryDialog({
             {t("viewer.library.empty")}
           </div>
         ) : (
-          <div className="max-h-[65vh] space-y-5 overflow-y-auto pr-1">
-            {groups.map((group) => (
-              <section key={group.batchId} className="space-y-2">
-                <div className="text-muted-foreground flex items-baseline gap-2 text-xs">
-                  <span className="font-mono tabular-nums">
-                    {formatBatchTime(group.createdAt, locale)}
-                  </span>
-                  <span className="font-mono tabular-nums">
-                    {t("unit.images", { count: group.images.length })}
-                  </span>
-                </div>
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
-                  {group.images.map((image) => (
-                    <button
-                      key={image.id}
-                      type="button"
-                      title={image.prompt || t("viewer.library.noPrompt")}
-                      // title isn't reliable as the accessible name, so set it
-                      // explicitly.
-                      aria-label={`${t("viewer.library.openImage", {
-                        time: formatBatchTime(image.createdAt, locale),
-                      })}${image.prompt ? ` (${image.prompt})` : ""}`}
-                      onClick={() => {
-                        onOpenBatch(group.images);
-                        onOpenChange(false);
-                      }}
-                      className="hover:ring-primary aspect-[3/4] overflow-hidden rounded-md border transition hover:ring-2"
-                    >
-                      <img
-                        src={resolveSrc(image)}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                        className="size-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
+          <ScrollArea className="max-h-[65vh]">
+            <div className="space-y-5 pr-3">
+              {groups.map((group) => (
+                <section key={group.batchId} className="space-y-2">
+                  <div className="text-muted-foreground flex items-baseline gap-2 text-xs">
+                    <span className="font-mono tabular-nums">
+                      {formatBatchTime(group.createdAt, locale)}
+                    </span>
+                    <span className="font-mono tabular-nums">
+                      {t("unit.images", { count: group.images.length })}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
+                    {group.images.map((image) => (
+                      <button
+                        key={image.id}
+                        type="button"
+                        title={image.prompt || t("viewer.library.noPrompt")}
+                        // title isn't reliable as the accessible name, so set it
+                        // explicitly.
+                        aria-label={`${t("viewer.library.openImage", {
+                          time: formatBatchTime(image.createdAt, locale),
+                        })}${image.prompt ? ` (${image.prompt})` : ""}`}
+                        onClick={() => {
+                          onOpenBatch(group.images);
+                          onOpenChange(false);
+                        }}
+                        className="hover:ring-primary aspect-[3/4] overflow-hidden rounded-md border transition hover:ring-2"
+                      >
+                        <img
+                          src={resolveSrc(image)}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="size-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </ScrollArea>
         )}
       </DialogContent>
     </Dialog>

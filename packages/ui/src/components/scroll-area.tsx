@@ -4,6 +4,12 @@ import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area";
 
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 
+/**
+ * The viewport is sized as a flex child rather than with `height: 100%`, so
+ * the root can take its height from `flex-1` or `max-h-*` alike. A percentage
+ * height only resolves against a definite parent height, and a root that is
+ * capped by max-height, or flexed inside a max-height dialog, has none.
+ */
 function ScrollArea({
   className,
   children,
@@ -12,12 +18,12 @@ function ScrollArea({
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
-      className={cn("relative", className)}
+      className={cn("relative flex flex-col", className)}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
         data-slot="scroll-area-viewport"
-        className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
+        className="min-h-0 w-full flex-1 rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>

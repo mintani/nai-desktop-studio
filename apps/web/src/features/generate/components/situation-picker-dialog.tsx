@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@nai-desktop-studio/ui/components/dialog";
 import { Input } from "@nai-desktop-studio/ui/components/input";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { ChevronDown, Search, Settings2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -146,110 +147,112 @@ export function SituationPickerDialog({
           </Button>
         </div>
 
-        <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
-          {sections.length === 0 ? (
-            <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed text-xs">
-              {situations.length === 0
-                ? t("situations.empty.title")
-                : t("generate.situationPicker.empty")}
-            </div>
-          ) : (
-            <div className="space-y-1.5 pb-1">
-              {sections.map((section) => {
-                const ids = section.items.map((item) => item.id);
-                const chosen = ids.filter((id) => selectedIds.includes(id));
-                const all = chosen.length === ids.length;
-                const some = chosen.length > 0 && !all;
-                const isOpen = searching || expanded.has(section.key);
+        <ScrollArea className="-mx-1 min-h-0 flex-1">
+          <div className="h-full px-1">
+            {sections.length === 0 ? (
+              <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed text-xs">
+                {situations.length === 0
+                  ? t("situations.empty.title")
+                  : t("generate.situationPicker.empty")}
+              </div>
+            ) : (
+              <div className="space-y-1.5 pb-1">
+                {sections.map((section) => {
+                  const ids = section.items.map((item) => item.id);
+                  const chosen = ids.filter((id) => selectedIds.includes(id));
+                  const all = chosen.length === ids.length;
+                  const some = chosen.length > 0 && !all;
+                  const isOpen = searching || expanded.has(section.key);
 
-                return (
-                  <div
-                    key={section.key}
-                    className="overflow-hidden rounded-md border"
-                  >
-                    <div className="flex items-center">
-                      <button
-                        type="button"
-                        onClick={() => toggleGroup(ids, !all)}
-                        aria-pressed={all}
-                        className="focus-visible:ring-ring/50 flex min-w-0 flex-1 items-center gap-2 px-2.5 py-2 text-left outline-none focus-visible:ring-1"
-                      >
-                        <Checkbox
-                          checked={all}
-                          indeterminate={some}
-                          tabIndex={-1}
-                          aria-hidden
-                        />
-                        <span className="min-w-0 flex-1 truncate text-xs font-medium">
-                          {section.name}
-                        </span>
-                        <span className="text-muted-foreground shrink-0 font-mono text-[0.625rem] tabular-nums">
-                          {chosen.length > 0 ? `${chosen.length}/` : ""}
-                          {ids.length}
-                        </span>
-                      </button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="mr-1 shrink-0"
-                        onClick={() => toggleExpanded(section.key)}
-                        aria-expanded={isOpen}
-                        title={t("generate.situationPicker.expand")}
-                      >
-                        <ChevronDown
-                          className={cn(
-                            "transition-transform duration-150 ease-out",
-                            isOpen && "rotate-180"
-                          )}
-                          aria-hidden
-                        />
-                        <span className="sr-only">
-                          {t("generate.situationPicker.expand")}
-                        </span>
-                      </Button>
-                    </div>
-
-                    {isOpen && (
-                      <div className="border-t">
-                        {section.items.map((situation) => {
-                          const selected = selectedIds.includes(situation.id);
-                          const preview = stripManagedSituationTokens(
-                            situation.basePrompt,
-                            "basePrompt"
-                          ).trim();
-                          return (
-                            <button
-                              key={situation.id}
-                              type="button"
-                              onClick={() => toggleOne(situation.id)}
-                              aria-pressed={selected}
-                              className="focus-visible:ring-ring/50 hover:bg-muted/50 flex w-full items-center gap-2 px-2.5 py-1.5 text-left outline-none focus-visible:ring-1"
-                            >
-                              <Checkbox
-                                checked={selected}
-                                tabIndex={-1}
-                                aria-hidden
-                              />
-                              <span className="flex min-w-0 flex-1 flex-col">
-                                <span className="truncate text-xs">
-                                  {situation.name}
-                                </span>
-                                <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
-                                  {preview || t("situations.noPrompt")}
-                                </span>
-                              </span>
-                            </button>
-                          );
-                        })}
+                  return (
+                    <div
+                      key={section.key}
+                      className="overflow-hidden rounded-md border"
+                    >
+                      <div className="flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroup(ids, !all)}
+                          aria-pressed={all}
+                          className="focus-visible:ring-ring/50 flex min-w-0 flex-1 items-center gap-2 px-2.5 py-2 text-left outline-none focus-visible:ring-1"
+                        >
+                          <Checkbox
+                            checked={all}
+                            indeterminate={some}
+                            tabIndex={-1}
+                            aria-hidden
+                          />
+                          <span className="min-w-0 flex-1 truncate text-xs font-medium">
+                            {section.name}
+                          </span>
+                          <span className="text-muted-foreground shrink-0 font-mono text-[0.625rem] tabular-nums">
+                            {chosen.length > 0 ? `${chosen.length}/` : ""}
+                            {ids.length}
+                          </span>
+                        </button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="mr-1 shrink-0"
+                          onClick={() => toggleExpanded(section.key)}
+                          aria-expanded={isOpen}
+                          title={t("generate.situationPicker.expand")}
+                        >
+                          <ChevronDown
+                            className={cn(
+                              "transition-transform duration-150 ease-out",
+                              isOpen && "rotate-180"
+                            )}
+                            aria-hidden
+                          />
+                          <span className="sr-only">
+                            {t("generate.situationPicker.expand")}
+                          </span>
+                        </Button>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+
+                      {isOpen && (
+                        <div className="border-t">
+                          {section.items.map((situation) => {
+                            const selected = selectedIds.includes(situation.id);
+                            const preview = stripManagedSituationTokens(
+                              situation.basePrompt,
+                              "basePrompt"
+                            ).trim();
+                            return (
+                              <button
+                                key={situation.id}
+                                type="button"
+                                onClick={() => toggleOne(situation.id)}
+                                aria-pressed={selected}
+                                className="focus-visible:ring-ring/50 hover:bg-muted/50 flex w-full items-center gap-2 px-2.5 py-1.5 text-left outline-none focus-visible:ring-1"
+                              >
+                                <Checkbox
+                                  checked={selected}
+                                  tabIndex={-1}
+                                  aria-hidden
+                                />
+                                <span className="flex min-w-0 flex-1 flex-col">
+                                  <span className="truncate text-xs">
+                                    {situation.name}
+                                  </span>
+                                  <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
+                                    {preview || t("situations.noPrompt")}
+                                  </span>
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
         <div className="flex items-center justify-between border-t pt-3">
           <span className="text-muted-foreground font-mono text-[0.6875rem] tabular-nums">

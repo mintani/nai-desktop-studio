@@ -21,6 +21,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 
 type Props = {
   /** Set to page through. currentId must be contained in this array. */
@@ -361,8 +362,10 @@ export function ImageLightbox({
         <div className="absolute top-14 left-3 z-10 max-w-sm rounded-lg bg-black/70 p-3 text-xs text-white/90 backdrop-blur">
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             <dt className="text-white/60">{t("viewer.info.prompt")}</dt>
-            <dd className="max-h-24 overflow-y-auto break-words whitespace-pre-wrap">
-              {current.prompt || "—"}
+            <dd className="break-words whitespace-pre-wrap">
+              <ScrollArea className="max-h-24">
+                {current.prompt || "—"}
+              </ScrollArea>
             </dd>
             <dt className="text-white/60">{t("viewer.info.model")}</dt>
             <dd>{current.model}</dd>

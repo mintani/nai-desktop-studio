@@ -8,6 +8,7 @@ import {
   Download,
   Hash,
   Loader2,
+  ScanSearch,
   Trash2,
 } from "lucide-react";
 import { Button } from "@nai-desktop-studio/ui/components/button";
@@ -33,6 +34,7 @@ type Props = {
   onDownload: (image: GeneratedImage) => void;
   onCopyPrompt: (image: GeneratedImage) => void;
   onCopySeed: (image: GeneratedImage) => void;
+  onAnalyze: (image: GeneratedImage) => void;
   onDelete: (image: GeneratedImage) => void;
 };
 
@@ -58,6 +60,7 @@ export function SingleImageView({
   onDownload,
   onCopyPrompt,
   onCopySeed,
+  onAnalyze,
   onDelete,
 }: Props) {
   const t = useT();
@@ -310,6 +313,17 @@ export function SingleImageView({
             >
               <Hash aria-hidden />
               <span className="sr-only">{t("viewer.action.copySeed")}</span>
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              className="rounded-full"
+              title={t("analysis.action")}
+              onClick={() => onAnalyze(shown)}
+            >
+              <ScanSearch aria-hidden />
+              <span className="sr-only">{t("analysis.action")}</span>
             </Button>
             <Button
               type="button"

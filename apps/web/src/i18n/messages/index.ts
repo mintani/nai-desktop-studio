@@ -1,4 +1,5 @@
 import type { Locale } from "../locale";
+import { analysis } from "./analysis";
 import { characters } from "./characters";
 import { common } from "./common";
 import { generate } from "./generate";
@@ -13,6 +14,7 @@ import { viewer } from "./viewer";
  * fallback at runtime.
  */
 export type MessageKey =
+  | keyof (typeof analysis)["en"]
   | keyof (typeof characters)["en"]
   | keyof (typeof common)["en"]
   | keyof (typeof generate)["en"]
@@ -22,6 +24,7 @@ export type MessageKey =
   | keyof (typeof viewer)["en"];
 
 const bundles = [
+  analysis,
   characters,
   common,
   generate,

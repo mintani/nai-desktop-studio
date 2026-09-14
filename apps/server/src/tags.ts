@@ -137,6 +137,32 @@ function searchTags(tags: IndexedTag[], query: string, limit: number) {
     }));
 }
 
+let artistCounts: Promise<Map<string, number>> | null = null;
+
+/**
+ * Danbooru post counts by artist tag, lower-cased. What "how well known" an
+ * artist is comes down to in the one dataset the app already ships, so the
+ * analysis can tell a name with fifty posts from one with five thousand.
+ */
+export function artistPostCounts(): Promise<Map<string, number>> {
+  if (!artistCounts) {
+    const loading = loadTags().then((tags) => {
+      const counts = new Map<string, number>();
+      for (const tag of tags) {
+        if (!tag.isArtist) continue;
+        const key = tag.name.toLowerCase();
+        counts.set(key, Math.max(counts.get(key) ?? 0, tag.count));
+      }
+      // An unreadable tag list loads as empty; keeping that would hide every
+      // artist behind the post-count filter until the process restarts.
+      if (counts.size === 0 && artistCounts === loading) artistCounts = null;
+      return counts;
+    });
+    artistCounts = loading;
+  }
+  return artistCounts;
+}
+
 const searchQuerySchema = z.object({
   q: z.string().min(1).max(50),
   limit: z.coerce.number().int().min(1).max(50).optional(),

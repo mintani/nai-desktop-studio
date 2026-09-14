@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MessageKey } from "@/i18n/messages";
 import { useT } from "@/i18n/provider";
 
+import { AnalysisDialog } from "@/features/analysis/components/analysis-dialog";
 import { useCharacters } from "@/features/characters/hooks/queries";
 import { useReferences } from "@/features/reference-library/hooks/queries";
 import { SettingsDialog } from "@/features/settings/components/settings-dialog";
@@ -107,6 +108,9 @@ export function GenerateWorkspace() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [lightboxId, setLightboxId] = useState<string | null>(null);
+  const [analysisImage, setAnalysisImage] = useState<GeneratedImage | null>(
+    null
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   // Batch picked from history. Reset to null when generation starts so the
   // running slots take over the display.
@@ -397,6 +401,12 @@ export function GenerateWorkspace() {
       void copyWithToast(image.prompt, "image.copiedPrompt"),
     onCopySeed: (image: GeneratedImage) =>
       void copyWithToast(String(image.seed), "image.copiedSeed"),
+    onAnalyze: (image: GeneratedImage) => {
+      // Close the lightbox first: both are portals, and its overlay would sit
+      // on top of the dialog.
+      setLightboxId(null);
+      setAnalysisImage(image);
+    },
     onDelete: handleDelete,
   };
 
@@ -529,6 +539,14 @@ export function GenerateWorkspace() {
         onOpenBatch={(images) => {
           setViewedBatch(images);
           setSelectedIds([]);
+        }}
+      />
+
+      <AnalysisDialog
+        image={analysisImage}
+        open={analysisImage !== null}
+        onOpenChange={(open) => {
+          if (!open) setAnalysisImage(null);
         }}
       />
 

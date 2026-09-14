@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 
 import { env } from "@nai-desktop-studio/env/server";
+import { analysisRouter } from "./analysis";
 import { assetsRouter } from "./assets";
 import { collectionsRouter } from "./collections";
 import { imagesRouter } from "./library";
@@ -29,6 +30,7 @@ const app = new Hono()
   .route("/collections", collectionsRouter)
   .route("/assets", assetsRouter)
   .route("/references", referencesRouter)
+  .route("/analysis", analysisRouter)
   .get("/", (c) => c.text("OK"));
 
 // Served here rather than by exporting a default, so the line below is printed

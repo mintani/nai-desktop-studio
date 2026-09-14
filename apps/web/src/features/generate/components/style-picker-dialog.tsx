@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@nai-desktop-studio/ui/components/dialog";
 import { Input } from "@nai-desktop-studio/ui/components/input";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { Check, ImageIcon, Search, Settings2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -119,80 +120,83 @@ export function StylePickerDialog({
           </Button>
         </div>
 
-        <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
-          {sections.length === 0 ? (
-            <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed text-xs">
-              {styles.length === 0
-                ? t("styles.empty.title")
-                : t("generate.stylePicker.empty")}
-            </div>
-          ) : (
-            <div className="space-y-4 pb-1">
-              {sections.map((section) => (
-                <section key={section.key} className="space-y-2">
-                  <div className="flex items-center gap-1.5 border-b pb-1">
-                    <h3 className="text-xs font-medium">{section.name}</h3>
-                    <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
-                      {section.items.length}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {section.items.map((style) => {
-                      const selected = style.id === selectedId;
-                      return (
-                        // Same clothes as a selected tile in the character
-                        // picker and the image grid.
-                        <button
-                          key={style.id}
-                          type="button"
-                          onClick={() => choose(style.id)}
-                          aria-pressed={selected}
-                          className={cn(
-                            "bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow] duration-150 ease-out",
-                            selected
-                              ? "ring-primary ring-offset-popover ring-2 ring-offset-2"
-                              : "hover:border-primary/40"
-                          )}
-                        >
-                          <span className="bg-muted text-muted-foreground/60 flex aspect-[3/4] w-full items-center justify-center overflow-hidden">
-                            {style.samplePath ? (
-                              <img
-                                src={assetUrl(style.samplePath)}
-                                alt=""
-                                draggable={false}
-                                loading="lazy"
-                                decoding="async"
-                                className="size-full object-cover select-none"
-                              />
-                            ) : (
-                              <ImageIcon className="size-6" aria-hidden />
+        <ScrollArea className="-mx-1 min-h-0 flex-1">
+          <div className="h-full px-1">
+            {sections.length === 0 ? (
+              <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed text-xs">
+                {styles.length === 0
+                  ? t("styles.empty.title")
+                  : t("generate.stylePicker.empty")}
+              </div>
+            ) : (
+              <div className="space-y-4 pb-1">
+                {sections.map((section) => (
+                  <section key={section.key} className="space-y-2">
+                    <div className="flex items-center gap-1.5 border-b pb-1">
+                      <h3 className="text-xs font-medium">{section.name}</h3>
+                      <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
+                        {section.items.length}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                      {section.items.map((style) => {
+                        const selected = style.id === selectedId;
+                        return (
+                          // Same clothes as a selected tile in the character
+                          // picker and the image grid.
+                          <button
+                            key={style.id}
+                            type="button"
+                            onClick={() => choose(style.id)}
+                            aria-pressed={selected}
+                            className={cn(
+                              "bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow] duration-150 ease-out",
+                              selected
+                                ? "ring-primary ring-offset-popover ring-2 ring-offset-2"
+                                : "hover:border-primary/40"
                             )}
-                          </span>
-                          <span className="flex min-w-0 flex-col gap-0.5 px-2 py-1.5">
-                            <span
-                              className="truncate text-xs font-medium"
-                              title={style.name}
-                            >
-                              {style.name}
+                          >
+                            <span className="bg-muted text-muted-foreground/60 flex aspect-[3/4] w-full items-center justify-center overflow-hidden">
+                              {style.samplePath ? (
+                                <img
+                                  src={assetUrl(style.samplePath)}
+                                  alt=""
+                                  draggable={false}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="size-full object-cover select-none"
+                                />
+                              ) : (
+                                <ImageIcon className="size-6" aria-hidden />
+                              )}
                             </span>
-                            <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
-                              {style.styleTag || t("generate.picker.noPrompt")}
+                            <span className="flex min-w-0 flex-col gap-0.5 px-2 py-1.5">
+                              <span
+                                className="truncate text-xs font-medium"
+                                title={style.name}
+                              >
+                                {style.name}
+                              </span>
+                              <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
+                                {style.styleTag ||
+                                  t("generate.picker.noPrompt")}
+                              </span>
                             </span>
-                          </span>
-                          {selected && (
-                            <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full ring-2">
-                              <Check className="size-3" strokeWidth={3} />
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
-            </div>
-          )}
-        </div>
+                            {selected && (
+                              <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full ring-2">
+                                <Check className="size-3" strokeWidth={3} />
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
 
         <div className="flex items-center justify-between border-t pt-3">
           <span className="text-muted-foreground text-[0.6875rem]">

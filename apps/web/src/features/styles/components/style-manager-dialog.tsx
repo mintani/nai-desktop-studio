@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@nai-desktop-studio/ui/components/dialog";
 import { Input } from "@nai-desktop-studio/ui/components/input";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { Palette, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -148,49 +149,53 @@ export function StyleManagerDialog({ open, onOpenChange }: Props) {
                 />
               </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-1">
-                {isPending && styles.length === 0 ? null : styles.length ===
-                  0 ? (
-                  <div className="rounded-md border border-dashed p-8 text-center">
-                    <Palette className="text-muted-foreground/50 mx-auto size-9" />
-                    <h3 className="mt-3 text-sm font-medium">
-                      {t("styles.empty.title")}
-                    </h3>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                      {t("styles.empty.hint")}
-                    </p>
-                  </div>
-                ) : sections.length === 0 ? (
-                  <div className="rounded-md border border-dashed p-8 text-center">
-                    <Search className="text-muted-foreground/50 mx-auto size-8" />
-                    <p className="text-muted-foreground mt-3 text-xs">
-                      {t("styles.noResults", { query: search.trim() })}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {sections.map((section) => (
-                      <section key={section.key} className="space-y-2">
-                        <h4 className="text-muted-foreground text-[0.6875rem] font-medium">
-                          {section.name ?? t("group.none")}
-                        </h4>
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                          {section.items.map((style) => (
-                            <StyleCard
-                              key={style.id}
-                              style={style}
-                              busy={duplicatingId === style.id}
-                              onEdit={(target) => setEditing({ style: target })}
-                              onDuplicate={handleDuplicate}
-                              onDelete={setDeleteTarget}
-                            />
-                          ))}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ScrollArea className="min-h-0 flex-1">
+                <div className="px-1">
+                  {isPending && styles.length === 0 ? null : styles.length ===
+                    0 ? (
+                    <div className="rounded-md border border-dashed p-8 text-center">
+                      <Palette className="text-muted-foreground/50 mx-auto size-9" />
+                      <h3 className="mt-3 text-sm font-medium">
+                        {t("styles.empty.title")}
+                      </h3>
+                      <p className="text-muted-foreground mt-1 text-xs">
+                        {t("styles.empty.hint")}
+                      </p>
+                    </div>
+                  ) : sections.length === 0 ? (
+                    <div className="rounded-md border border-dashed p-8 text-center">
+                      <Search className="text-muted-foreground/50 mx-auto size-8" />
+                      <p className="text-muted-foreground mt-3 text-xs">
+                        {t("styles.noResults", { query: search.trim() })}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {sections.map((section) => (
+                        <section key={section.key} className="space-y-2">
+                          <h4 className="text-muted-foreground text-[0.6875rem] font-medium">
+                            {section.name ?? t("group.none")}
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                            {section.items.map((style) => (
+                              <StyleCard
+                                key={style.id}
+                                style={style}
+                                busy={duplicatingId === style.id}
+                                onEdit={(target) =>
+                                  setEditing({ style: target })
+                                }
+                                onDuplicate={handleDuplicate}
+                                onDelete={setDeleteTarget}
+                              />
+                            ))}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
             </div>
           )}
         </DialogContent>

@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@nai-desktop-studio/ui/components/select";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { Search, Settings2 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -197,126 +198,133 @@ export function CharacterPickerDialog({
               </Button>
             </div>
 
-            <div className="-mx-1 min-h-0 flex-1 overflow-y-auto px-1">
-              {sections.length === 0 ? (
-                <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed text-xs">
-                  {characters.length === 0
-                    ? t("characters.empty")
-                    : t("generate.picker.empty")}
-                </div>
-              ) : (
-                <div className="space-y-4 pb-1">
-                  {sections.map((section) => (
-                    <section key={section.key} className="space-y-2">
-                      <div className="flex items-center gap-1.5 border-b pb-1">
-                        <h3 className="text-xs font-medium">{section.name}</h3>
-                        <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
-                          {section.items.length}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                        {section.items.map((character) => {
-                          const order = pickedIds.indexOf(character.id);
-                          const selected = order >= 0;
-                          const preview =
-                            buildCharacterPositivePrompt(character);
+            <ScrollArea className="-mx-1 min-h-0 flex-1">
+              <div className="h-full px-1">
+                {sections.length === 0 ? (
+                  <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed text-xs">
+                    {characters.length === 0
+                      ? t("characters.empty")
+                      : t("generate.picker.empty")}
+                  </div>
+                ) : (
+                  <div className="space-y-4 pb-1">
+                    {sections.map((section) => (
+                      <section key={section.key} className="space-y-2">
+                        <div className="flex items-center gap-1.5 border-b pb-1">
+                          <h3 className="text-xs font-medium">
+                            {section.name}
+                          </h3>
+                          <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
+                            {section.items.length}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                          {section.items.map((character) => {
+                            const order = pickedIds.indexOf(character.id);
+                            const selected = order >= 0;
+                            const preview =
+                              buildCharacterPositivePrompt(character);
 
-                          return (
-                            // Same clothes as a selected tile in the image
-                            // grid: primary ring, offset, badge top-right.
-                            // Picking a picture out of a grid is the same act
-                            // in both places.
-                            <button
-                              key={character.id}
-                              type="button"
-                              onClick={() => toggle(character.id)}
-                              aria-pressed={selected}
-                              className={cn(
-                                "bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow] duration-150 ease-out",
-                                selected
-                                  ? "ring-primary ring-offset-popover ring-2 ring-offset-2"
-                                  : "hover:border-primary/40"
-                              )}
-                            >
-                              <CharacterThumbnail
-                                character={character}
-                                className="aspect-[3/4] w-full"
-                              />
-                              <span className="flex min-w-0 flex-col gap-0.5 px-2 py-1.5">
-                                <span
-                                  className="truncate text-xs font-medium"
-                                  title={character.name}
-                                >
-                                  {character.name}
+                            return (
+                              // Same clothes as a selected tile in the image
+                              // grid: primary ring, offset, badge top-right.
+                              // Picking a picture out of a grid is the same act
+                              // in both places.
+                              <button
+                                key={character.id}
+                                type="button"
+                                onClick={() => toggle(character.id)}
+                                aria-pressed={selected}
+                                className={cn(
+                                  "bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow] duration-150 ease-out",
+                                  selected
+                                    ? "ring-primary ring-offset-popover ring-2 ring-offset-2"
+                                    : "hover:border-primary/40"
+                                )}
+                              >
+                                <CharacterThumbnail
+                                  character={character}
+                                  className="aspect-[3/4] w-full"
+                                />
+                                <span className="flex min-w-0 flex-col gap-0.5 px-2 py-1.5">
+                                  <span
+                                    className="truncate text-xs font-medium"
+                                    title={character.name}
+                                  >
+                                    {character.name}
+                                  </span>
+                                  <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
+                                    {preview || t("generate.picker.noPrompt")}
+                                  </span>
                                 </span>
-                                <span className="text-muted-foreground truncate font-mono text-[0.625rem]">
-                                  {preview || t("generate.picker.noPrompt")}
-                                </span>
-                              </span>
-                              {selected && (
-                                <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full font-mono text-[0.625rem] font-semibold tabular-nums ring-2">
-                                  {order + 1}
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  ))}
-                </div>
-              )}
-            </div>
+                                {selected && (
+                                  <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full font-mono text-[0.625rem] font-semibold tabular-nums ring-2">
+                                    {order + 1}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
           </div>
 
           {/* The ring on the active card sits outside its border, so the
               scroll container keeps a little padding for it. */}
-          <div className="w-80 shrink-0 space-y-3 overflow-y-auto border-l py-1 pr-1 pl-3">
-            {picked.length === 0 ? (
-              <p className="text-muted-foreground rounded-md border border-dashed p-3 text-center text-[0.6875rem] leading-relaxed">
-                {t("generate.picker.emptySelection")}
-              </p>
-            ) : (
-              <>
-                <div className="space-y-1.5">
-                  <Label>{t("generate.placement.label")}</Label>
-                  <CharacterPlacementGrid
-                    entries={picked.map((entry) => {
-                      const character = characters.find(
-                        (item) => item.id === entry.id
-                      );
-                      return {
-                        id: entry.id,
-                        label: character?.name ?? t("generate.picker.missing"),
-                        position: entry.position,
-                        imagePath: character?.imagePath ?? null,
-                      };
-                    })}
-                    aspect={aspect}
-                    freeform={freeform}
+          <ScrollArea className="w-80 shrink-0 border-l">
+            <div className="space-y-3 py-1 pr-1 pl-3">
+              {picked.length === 0 ? (
+                <p className="text-muted-foreground rounded-md border border-dashed p-3 text-center text-[0.6875rem] leading-relaxed">
+                  {t("generate.picker.emptySelection")}
+                </p>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <Label>{t("generate.placement.label")}</Label>
+                    <CharacterPlacementGrid
+                      entries={picked.map((entry) => {
+                        const character = characters.find(
+                          (item) => item.id === entry.id
+                        );
+                        return {
+                          id: entry.id,
+                          label:
+                            character?.name ?? t("generate.picker.missing"),
+                          position: entry.position,
+                          imagePath: character?.imagePath ?? null,
+                        };
+                      })}
+                      aspect={aspect}
+                      freeform={freeform}
+                      activeId={activeId}
+                      onActiveChange={onActiveChange}
+                      onPositionChange={(id, position) =>
+                        onPickedChange(
+                          picked.map((entry) =>
+                            entry.id === id ? { ...entry, position } : entry
+                          )
+                        )
+                      }
+                    />
+                  </div>
+                  <SelectedCharacterList
+                    picked={picked}
+                    characters={characters}
                     activeId={activeId}
                     onActiveChange={onActiveChange}
-                    onPositionChange={(id, position) =>
-                      onPickedChange(
-                        picked.map((entry) =>
-                          entry.id === id ? { ...entry, position } : entry
-                        )
-                      )
-                    }
+                    onPickedChange={onPickedChange}
+                    onCharacterChange={onCharacterChange}
+                    freeform={freeform}
                   />
-                </div>
-                <SelectedCharacterList
-                  picked={picked}
-                  characters={characters}
-                  activeId={activeId}
-                  onActiveChange={onActiveChange}
-                  onPickedChange={onPickedChange}
-                  onCharacterChange={onCharacterChange}
-                  freeform={freeform}
-                />
-              </>
-            )}
-          </div>
+                </>
+              )}
+            </div>
+          </ScrollArea>
         </div>
 
         <div className="flex items-center justify-between border-t pt-3">

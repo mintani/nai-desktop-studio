@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@nai-desktop-studio/ui/components/dialog";
 import { Input } from "@nai-desktop-studio/ui/components/input";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { cn } from "@nai-desktop-studio/ui/lib/utils";
 import { ImagePlus, Loader2, Search, Settings2, Trash2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -228,111 +229,115 @@ export function ReferencePickerDialog({
         </div>
 
         <div className="flex min-h-0 flex-1 gap-3">
-          <div className="-mx-1 min-h-0 min-w-0 flex-1 overflow-y-auto px-1">
-            {sections.length === 0 ? (
-              <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed p-4 text-center text-xs leading-relaxed">
-                {ofKind.length === 0
-                  ? t("referenceLibrary.empty")
-                  : t("referenceLibrary.noMatch")}
-              </div>
-            ) : (
-              <div className="space-y-4 pb-1">
-                {sections.map((section) => (
-                  <section key={section.key} className="space-y-2">
-                    <div className="flex items-center gap-1.5 border-b pb-1">
-                      <h3 className="text-xs font-medium">{section.name}</h3>
-                      <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
-                        {section.items.length}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                      {section.items.map((entry) => {
-                        const order = selectedIds.indexOf(entry.id);
-                        const selected = order >= 0;
-                        return (
-                          <button
-                            key={entry.id}
-                            type="button"
-                            onClick={() => toggle(entry.id)}
-                            aria-pressed={selected}
-                            className={cn(
-                              "bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow] duration-150 ease-out",
-                              selected
-                                ? "ring-primary ring-offset-popover ring-2 ring-offset-2"
-                                : "hover:border-primary/40",
-                              entry.id === editingId &&
-                                !selected &&
-                                "border-primary"
-                            )}
-                          >
-                            <span className="bg-muted flex aspect-square w-full items-center justify-center overflow-hidden">
-                              <img
-                                src={referenceImageUrl(entry.id)}
-                                alt=""
-                                draggable={false}
-                                loading="lazy"
-                                decoding="async"
-                                className="size-full object-cover select-none"
-                              />
-                            </span>
-                            <span className="flex min-w-0 flex-col gap-0.5 px-2 py-1.5">
-                              <span
-                                className="truncate text-xs font-medium"
-                                title={entry.name}
-                              >
-                                {entry.name}
+          <ScrollArea className="-mx-1 min-h-0 min-w-0 flex-1">
+            <div className="h-full px-1">
+              {sections.length === 0 ? (
+                <div className="text-muted-foreground flex h-full min-h-40 items-center justify-center rounded-md border border-dashed p-4 text-center text-xs leading-relaxed">
+                  {ofKind.length === 0
+                    ? t("referenceLibrary.empty")
+                    : t("referenceLibrary.noMatch")}
+                </div>
+              ) : (
+                <div className="space-y-4 pb-1">
+                  {sections.map((section) => (
+                    <section key={section.key} className="space-y-2">
+                      <div className="flex items-center gap-1.5 border-b pb-1">
+                        <h3 className="text-xs font-medium">{section.name}</h3>
+                        <span className="text-muted-foreground/70 font-mono text-[0.625rem] tabular-nums">
+                          {section.items.length}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                        {section.items.map((entry) => {
+                          const order = selectedIds.indexOf(entry.id);
+                          const selected = order >= 0;
+                          return (
+                            <button
+                              key={entry.id}
+                              type="button"
+                              onClick={() => toggle(entry.id)}
+                              aria-pressed={selected}
+                              className={cn(
+                                "bg-card relative flex flex-col overflow-hidden rounded-lg border text-left transition-[border-color,box-shadow] duration-150 ease-out",
+                                selected
+                                  ? "ring-primary ring-offset-popover ring-2 ring-offset-2"
+                                  : "hover:border-primary/40",
+                                entry.id === editingId &&
+                                  !selected &&
+                                  "border-primary"
+                              )}
+                            >
+                              <span className="bg-muted flex aspect-square w-full items-center justify-center overflow-hidden">
+                                <img
+                                  src={referenceImageUrl(entry.id)}
+                                  alt=""
+                                  draggable={false}
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="size-full object-cover select-none"
+                                />
                               </span>
-                              {/* Encoded or not is the only thing here that
+                              <span className="flex min-w-0 flex-col gap-0.5 px-2 py-1.5">
+                                <span
+                                  className="truncate text-xs font-medium"
+                                  title={entry.name}
+                                >
+                                  {entry.name}
+                                </span>
+                                {/* Encoded or not is the only thing here that
                                   costs money, so it gets the colour. */}
-                              <ReferenceEntryStatus entry={entry} />
-                            </span>
-                            {selected && (
-                              <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full font-mono text-[0.625rem] font-semibold tabular-nums ring-2">
-                                {order + 1}
+                                <ReferenceEntryStatus entry={entry} />
                               </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            )}
-          </div>
+                              {selected && (
+                                <span className="bg-primary text-primary-foreground ring-background absolute top-1.5 right-1.5 flex size-5 items-center justify-center rounded-full font-mono text-[0.625rem] font-semibold tabular-nums ring-2">
+                                  {order + 1}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              )}
+            </div>
+          </ScrollArea>
 
-          <div className="w-72 shrink-0 space-y-3 overflow-y-auto border-l py-1 pr-1 pl-3">
-            {editing ? (
-              <>
-                <ReferenceEntryFields
-                  entry={editing}
-                  groupOptions={groupOptions}
-                  onPatch={patch}
-                />
+          <ScrollArea className="w-72 shrink-0 border-l">
+            <div className="space-y-3 py-1 pr-1 pl-3">
+              {editing ? (
+                <>
+                  <ReferenceEntryFields
+                    entry={editing}
+                    groupOptions={groupOptions}
+                    onPatch={patch}
+                  />
 
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  className="w-full"
-                  onClick={() => {
-                    onSelectedChange(
-                      selectedIds.filter((id) => id !== editing.id)
-                    );
-                    setEditingId(null);
-                    remove.mutate(editing);
-                  }}
-                >
-                  <Trash2 />
-                  {t("action.delete")}
-                </Button>
-              </>
-            ) : (
-              <p className="text-muted-foreground rounded-md border border-dashed p-3 text-center text-[0.6875rem] leading-relaxed">
-                {t("referenceLibrary.pickToEdit")}
-              </p>
-            )}
-          </div>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      onSelectedChange(
+                        selectedIds.filter((id) => id !== editing.id)
+                      );
+                      setEditingId(null);
+                      remove.mutate(editing);
+                    }}
+                  >
+                    <Trash2 />
+                    {t("action.delete")}
+                  </Button>
+                </>
+              ) : (
+                <p className="text-muted-foreground rounded-md border border-dashed p-3 text-center text-[0.6875rem] leading-relaxed">
+                  {t("referenceLibrary.pickToEdit")}
+                </p>
+              )}
+            </div>
+          </ScrollArea>
         </div>
 
         <div className="flex items-center justify-between border-t pt-3">

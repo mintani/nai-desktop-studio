@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@nai-desktop-studio/ui/components/select";
+import { ScrollArea } from "@nai-desktop-studio/ui/components/scroll-area";
 import { ArrowLeft, ImagePlus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -293,141 +294,145 @@ export function StyleEditor({ style, onClose }: Props) {
         </DialogTitle>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-1">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="style-name">{t("styles.field.name")}</Label>
-            <Input
-              id="style-name"
-              value={draft.name}
-              placeholder={t("styles.field.namePlaceholder")}
-              aria-invalid={nameError}
-              onChange={(event) => {
-                setNameError(false);
-                patch({ name: event.target.value });
-              }}
-            />
-            {nameError && (
-              <p className="text-destructive text-xs">
-                {t("styles.error.nameRequired")}
-              </p>
-            )}
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="style-group">{t("group.label")}</Label>
-            <GroupField
-              id="style-group"
-              value={draft.groupName || null}
-              options={groupOptions}
-              onChange={(groupName) => patch({ groupName: groupName ?? "" })}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>{t("styles.field.sample")}</Label>
-          <div className="flex items-start gap-3">
-            <div className="bg-muted relative size-20 shrink-0 overflow-hidden rounded-sm border">
-              {draft.sample ? (
-                <img
-                  src={imageSrc(draft.sample)}
-                  alt=""
-                  className="size-full object-cover"
-                  decoding="async"
-                />
-              ) : (
-                <span className="text-muted-foreground flex size-full items-center justify-center">
-                  <ImagePlus className="size-6" aria-hidden />
-                </span>
-              )}
-            </div>
-            <div className="flex-1 space-y-2">
-              <AddImageButton
-                label={
-                  draft.sample
-                    ? t("styles.sample.change")
-                    : t("styles.sample.pick")
-                }
-                onPick={handlePickSample}
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="space-y-4 px-1">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="style-name">{t("styles.field.name")}</Label>
+              <Input
+                id="style-name"
+                value={draft.name}
+                placeholder={t("styles.field.namePlaceholder")}
+                aria-invalid={nameError}
+                onChange={(event) => {
+                  setNameError(false);
+                  patch({ name: event.target.value });
+                }}
               />
-              {draft.sample && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={removeSample}
-                >
-                  <X />
-                  {t("styles.action.delete")}
-                </Button>
+              {nameError && (
+                <p className="text-destructive text-xs">
+                  {t("styles.error.nameRequired")}
+                </p>
               )}
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="style-group">{t("group.label")}</Label>
+              <GroupField
+                id="style-group"
+                value={draft.groupName || null}
+                options={groupOptions}
+                onChange={(groupName) => patch({ groupName: groupName ?? "" })}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="style-tag">{t("styles.field.styleTag")}</Label>
-          <TagAutocompleteTextarea
-            id="style-tag"
-            value={draft.styleTag}
-            onChange={(value) => patch({ styleTag: value })}
-            rows={2}
-            placeholder={t("styles.field.styleTagPlaceholder")}
+          <div className="space-y-1.5">
+            <Label>{t("styles.field.sample")}</Label>
+            <div className="flex items-start gap-3">
+              <div className="bg-muted relative size-20 shrink-0 overflow-hidden rounded-sm border">
+                {draft.sample ? (
+                  <img
+                    src={imageSrc(draft.sample)}
+                    alt=""
+                    className="size-full object-cover"
+                    decoding="async"
+                  />
+                ) : (
+                  <span className="text-muted-foreground flex size-full items-center justify-center">
+                    <ImagePlus className="size-6" aria-hidden />
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 space-y-2">
+                <AddImageButton
+                  label={
+                    draft.sample
+                      ? t("styles.sample.change")
+                      : t("styles.sample.pick")
+                  }
+                  onPick={handlePickSample}
+                />
+                {draft.sample && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={removeSample}
+                  >
+                    <X />
+                    {t("styles.action.delete")}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="style-tag">{t("styles.field.styleTag")}</Label>
+            <TagAutocompleteTextarea
+              id="style-tag"
+              value={draft.styleTag}
+              onChange={(value) => patch({ styleTag: value })}
+              rows={2}
+              placeholder={t("styles.field.styleTagPlaceholder")}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="style-position">
+              {t("styles.field.promptPosition")}
+            </Label>
+            <PositionSelect
+              id="style-position"
+              value={draft.promptPosition}
+              onChange={(value) => patch({ promptPosition: value })}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="negative-tag">
+              {t("styles.field.negativeTag")}
+            </Label>
+            <TagAutocompleteTextarea
+              id="negative-tag"
+              value={draft.negativeTag}
+              onChange={(value) => patch({ negativeTag: value })}
+              rows={2}
+              placeholder={t("styles.field.negativeTagPlaceholder")}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="negative-position">
+              {t("styles.field.negativePosition")}
+            </Label>
+            <PositionSelect
+              id="negative-position"
+              value={draft.negativePosition}
+              onChange={(value) => patch({ negativePosition: value })}
+            />
+          </div>
+
+          <StyleParamOverrides
+            params={draft.params}
+            onChange={(params) =>
+              patch({ params: { ...draft.params, ...params } })
+            }
+          />
+
+          <StyleVibeManager
+            vibes={draft.vibes}
+            onChange={(vibes) => patch({ vibes })}
+            blocked={draft.references.length > 0}
+          />
+
+          <StyleReferenceManager
+            references={draft.references}
+            onChange={(references) => patch({ references })}
+            blocked={draft.vibes.length > 0}
           />
         </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="style-position">
-            {t("styles.field.promptPosition")}
-          </Label>
-          <PositionSelect
-            id="style-position"
-            value={draft.promptPosition}
-            onChange={(value) => patch({ promptPosition: value })}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="negative-tag">{t("styles.field.negativeTag")}</Label>
-          <TagAutocompleteTextarea
-            id="negative-tag"
-            value={draft.negativeTag}
-            onChange={(value) => patch({ negativeTag: value })}
-            rows={2}
-            placeholder={t("styles.field.negativeTagPlaceholder")}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="negative-position">
-            {t("styles.field.negativePosition")}
-          </Label>
-          <PositionSelect
-            id="negative-position"
-            value={draft.negativePosition}
-            onChange={(value) => patch({ negativePosition: value })}
-          />
-        </div>
-
-        <StyleParamOverrides
-          params={draft.params}
-          onChange={(params) =>
-            patch({ params: { ...draft.params, ...params } })
-          }
-        />
-
-        <StyleVibeManager
-          vibes={draft.vibes}
-          onChange={(vibes) => patch({ vibes })}
-          blocked={draft.references.length > 0}
-        />
-
-        <StyleReferenceManager
-          references={draft.references}
-          onChange={(references) => patch({ references })}
-          blocked={draft.vibes.length > 0}
-        />
-      </div>
+      </ScrollArea>
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
